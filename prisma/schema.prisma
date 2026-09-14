@@ -1,0 +1,189 @@
+// NomadPacket — Prisma schema
+//
+// See AGENTS.md §3.3 (data model) and §3.4 (add-country contract). The single
+// most important design decision here is CountryConfig: a generic, keyed,
+// versioned store that holds eligibility thresholds, template text variants,
+// Bucket-3 branch data, form-field mappings, AND the qualifier-gate table —
+// so adding country #2 is new rows + new files, never a schema change.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  sessions     Session[]
+  applications Application[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Hashed session token (SHA-256 of the raw cookie value). The raw value
+  // never touches the database — only the cookie and this hash exist.
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+// Short-lived, single-use magic-link tokens — distinct from Session, which
+// represents the logged-in cookie session created only after verification.
+model MagicLinkToken {
+  id         String    @id @default(cuid())
+  email      String
+  // SHA-256 hash of the raw token embedded in the emailed URL. Never store
+  // the raw token — a DB read alone must never yield a usable sign-in link.
+  tokenHash  String    @unique @map("token_hash")
+  expiresAt  DateTime  @map("expires_at")
+  consumedAt DateTime? @map("consumed_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@index([email])
+  @@map("magic_link_tokens")
+}
+
+// Step 1 of the flow (before auth exists): captures interest for a
+// country/visaType combination the qualifier gate does not yet support.
+// Deliberately has no relation to User/Application — nothing is created
+// for an unsupported selection beyond this row.
+model Waitlist {
+  id        String   @id @default(cuid())
+  email     String
+  country   String
+  visaType  String   @map("visa_type")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("waitlist")
+}
+
+enum ApplicationStatus {
+  DRAFT
+  QUESTIONNAIRE_COMPLETE
+  AWAITING_PAYMENT
+  PAID
+  PACKET_READY
+  DELIVERED
+}
+
+model Application {
+  id        String            @id @default(cuid())
+  userId    String            @map("user_id")
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // ISO-ish country code, e.g. "PT" — always "PT" in v1.
+  country   String
+  // Fixed once at creation from the qualifier-gate context (§ country-config/
+  // qualifier-gate.ts) — never re-asked in the questionnaire. Always
+  // "D8_RESIDENCE" in v1; "D8_TEMPORARY" only ever reaches the waitlist.
+  visaType  String            @map("visa_type")
+  status    ApplicationStatus @default(DRAFT)
+  // Shape validated against the questionnaire config in application code
+  // (questionnaire-engine/engine.ts), not enforced at the DB layer.
+  answers   Json              @default("{}")
+  createdAt DateTime          @default(now()) @map("created_at")
+  updatedAt DateTime          @updatedAt @map("updated_at")
+
+  generatedDocuments GeneratedDocument[]
+  payments           Payment[]
+
+  @@index([userId])
+  @@map("applications")
+}
+
+enum DocumentType {
+  MOTIVATION_LETTER
+  EMPLOYER_CONFIRMATION_LETTER
+  FREELANCER_INCOME_NARRATIVE
+  INCOME_SUMMARY_SHEET
+  NATIONAL_VISA_FORM_PREFILL
+}
+
+model GeneratedDocument {
+  id            String       @id @default(cuid())
+  applicationId String       @map("application_id")
+  application   Application  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  type          DocumentType
+  // Storage key/path (see lib/storage.ts), not a public URL directly.
+  fileUrl       String       @map("file_url")
+  generatedAt   DateTime     @default(now()) @map("generated_at")
+
+  @@index([applicationId])
+  @@map("generated_documents")
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  applicationId String        @map("application_id")
+  application   Application   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  // Dodo Payments checkout/session identifier.
+  providerRef   String        @unique @map("provider_ref")
+  status        PaymentStatus @default(PENDING)
+  // Minor units (cents).
+  amount        Int
+  // ISO 4217, e.g. "USD".
+  currency      String
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  @@index([applicationId])
+  @@map("payments")
+}
+
+// ---- THE CORE VERSIONING TABLE (AGENTS.md §3.2/§3.4) ----
+//
+// Generic enough to hold: eligibility thresholds (incl. the dependents
+// income-addition formula), letter template text variants, Bucket-3 branch
+// data (criminal record / NIF guidance per home country), form-field
+// mappings, and the qualifier-gate support table — all as JSON payloads,
+// scoped by country + visaType + an optional homeCountry, versioned by
+// effective date range, always sourced.
+//
+// Key naming convention (see country-config/types.ts for the enforced enum):
+//   eligibility.monthlyIncomeThreshold
+//   eligibility.dependentsIncomeAddition
+//   eligibility.savingsBufferGuideline
+//   branch.criminalRecord.instructions   (scoped by homeCountry)
+//   branch.nif.instructions              (scoped by homeCountry)
+//   formFill.nationalVisaForm.fieldMapping
+//   qualifierGate.supportedVisaTypes
+model CountryConfig {
+  id            String    @id @default(cuid())
+  country       String
+  visaType      String    @map("visa_type")
+  // null = country-wide value, not scoped to a specific home country.
+  homeCountry   String?   @map("home_country")
+  key           String
+  value         Json
+  effectiveFrom DateTime  @map("effective_from")
+  // null = still current.
+  effectiveTo   DateTime? @map("effective_to")
+  sourceUrl     String    @map("source_url")
+  // Free text: verification date, editor, known discrepancies (e.g. the
+  // dependents-income-addition base ambiguity — see seed.ts).
+  sourceNote    String?   @map("source_note")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@unique([country, visaType, homeCountry, key, effectiveFrom])
+  @@index([country, visaType, homeCountry, key])
+  @@map("country_configs")
+}
