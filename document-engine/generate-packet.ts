@@ -4,7 +4,9 @@ import { CountryConfigKey } from "@/country-config/types";
 import type {
   CriminalRecordBranchInstructions,
   EligibilityMonthlyIncomeThreshold,
+  FormFieldMapping,
 } from "@/country-config/types";
+import { fillForm } from "./form-fill/fill";
 import type { Answers } from "@/questionnaire-engine/types";
 import {
   mapAnswersToMotivationLetterData,
@@ -92,6 +94,22 @@ export async function generateApplicationDocuments(applicationId: string): Promi
       }),
     ),
   });
+
+  // Bucket 2 — official form pre-fill. Currently always the STUB mapping
+  // (see document-engine/form-fill/README.md); fill.ts is generic and
+  // will work identically once the real mapping/asset replace it, no
+  // change needed here.
+  const formMappingResult = await resolveConfigValue<FormFieldMapping>({
+    country: application.country,
+    visaType: application.visaType,
+    key: CountryConfigKey.FormFillNationalVisaFormMapping,
+  });
+  if (formMappingResult) {
+    documentsToGenerate.push({
+      type: "NATIONAL_VISA_FORM_PREFILL",
+      buffer: fillForm(formMappingResult.value, answers, process.cwd()),
+    });
+  }
 
   await prisma.generatedDocument.deleteMany({
     where: { applicationId, type: { in: documentsToGenerate.map((d) => d.type) } },
