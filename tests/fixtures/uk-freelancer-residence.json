@@ -1,0 +1,24 @@
+{
+  "description": "UK applicant, freelancer, no dependents, residence visa.",
+  "country": "PT",
+  "visaType": "D8_RESIDENCE",
+  "answers": {
+    "fullLegalName": "Alex Smith",
+    "nationality": "UK",
+    "currentCountry": "United Kingdom",
+    "passportNumber": "GB9876543",
+    "passportExpiry": "2098-06-15",
+    "employmentType": "freelancer",
+    "employerOrClientNames": "several UK and EU design agencies",
+    "monthlyIncome": 4200,
+    "incomeCurrency": "GBP",
+    "incomeStabilityMonths": 18,
+    "hasSavingsBuffer": true,
+    "savingsBufferAmount": 12000,
+    "hasDependents": false,
+    "hasAccommodation": false,
+    "hasHealthInsurance": false,
+    "intendedMoveDate": "2027-05-15",
+    "personalReason": "a slower pace of life and better weather"
+  }
+}

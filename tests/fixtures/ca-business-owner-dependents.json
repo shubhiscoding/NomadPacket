@@ -1,0 +1,27 @@
+{
+  "description": "Canadian applicant, business owner, WITH dependents (spouse + 2 children), residence visa.",
+  "country": "PT",
+  "visaType": "D8_RESIDENCE",
+  "answers": {
+    "fullLegalName": "Morgan Lee",
+    "nationality": "CA",
+    "currentCountry": "Canada",
+    "passportNumber": "CA1122334",
+    "passportExpiry": "2097-11-20",
+    "employmentType": "business_owner",
+    "employerOrClientNames": "Lee Consulting Ltd. clients across North America",
+    "monthlyIncome": 7000,
+    "incomeCurrency": "CAD",
+    "incomeStabilityMonths": 24,
+    "hasSavingsBuffer": true,
+    "savingsBufferAmount": 20000,
+    "hasDependents": true,
+    "dependentsSpouseIncluded": true,
+    "dependentsChildrenCount": 2,
+    "hasAccommodation": true,
+    "accommodationDetails": "Avenida da Liberdade 200, Lisbon",
+    "hasHealthInsurance": true,
+    "intendedMoveDate": "2027-08-01",
+    "personalReason": "raising our kids somewhere with better public infrastructure"
+  }
+}
