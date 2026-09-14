@@ -31,7 +31,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 });
   }
 
-  await issueAndSendMagicLink(parsed.data.email);
+  try {
+    await issueAndSendMagicLink(parsed.data.email);
+  } catch (err) {
+    console.error("Failed to send magic-link email:", err);
+    return NextResponse.json(
+      { error: "We couldn't send the sign-in email. Please try again shortly." },
+      { status: 502 },
+    );
+  }
 
   return NextResponse.json({ ok: true });
 }

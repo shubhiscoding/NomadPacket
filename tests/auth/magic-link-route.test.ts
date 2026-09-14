@@ -63,4 +63,20 @@ describe("POST /api/auth/magic-link", () => {
     const res = await POST(requestWithGateCookie({ email: "not-an-email" }, gateCookie));
     expect(res.status).toBe(400);
   });
+
+  it("surfaces a 502 (not a false 200) when the email provider fails to send", async () => {
+    // Regression test: Resend's SDK returns {error} rather than throwing on
+    // API-level failures — sendMagicLinkEmail must convert that into a
+    // thrown error, and the route must not report ok:true when it happens.
+    sendMagicLinkEmailMock.mockRejectedValueOnce(new Error("Resend failed to send email"));
+    const gateCookie = createGateContextCookieValue({
+      country: "PT",
+      visaType: "D8_RESIDENCE",
+    });
+    const { POST } = await import("@/app/api/auth/magic-link/route");
+    const res = await POST(requestWithGateCookie({ email: TEST_EMAIL }, gateCookie));
+    expect(res.status).toBe(502);
+    const data = await res.json();
+    expect(data.ok).toBeUndefined();
+  });
 });

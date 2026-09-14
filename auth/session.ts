@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { cookies } from "next/headers";
+import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import type { User } from "@prisma/client";
 
@@ -75,4 +76,9 @@ export async function destroySessionByToken(rawToken: string | undefined): Promi
 export async function getSessionUser(): Promise<User | null> {
   const cookieStore = await cookies();
   return getSessionUserByToken(cookieStore.get(SESSION_COOKIE_NAME)?.value);
+}
+
+/** For Route Handlers: reads the session cookie off the request directly. */
+export async function getSessionUserFromRequest(request: NextRequest): Promise<User | null> {
+  return getSessionUserByToken(request.cookies.get(SESSION_COOKIE_NAME)?.value);
 }
