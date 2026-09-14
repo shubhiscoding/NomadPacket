@@ -1,0 +1,24 @@
+{
+  "description": "US applicant, employee, no dependents, residence visa — one canonical fixture per (home country x employment type x dependents-or-not) combination, per AGENTS.md §3.4's add-country test-fixture contract.",
+  "country": "PT",
+  "visaType": "D8_RESIDENCE",
+  "answers": {
+    "fullLegalName": "Jane Doe",
+    "nationality": "US",
+    "currentCountry": "United States",
+    "passportNumber": "X1234567",
+    "passportExpiry": "2099-01-01",
+    "employmentType": "employee",
+    "employerOrClientNames": "Acme Inc",
+    "monthlyIncome": 5000,
+    "incomeCurrency": "USD",
+    "incomeStabilityMonths": 12,
+    "hasSavingsBuffer": false,
+    "hasDependents": false,
+    "hasAccommodation": true,
+    "accommodationDetails": "Rua das Flores 12, Lisbon",
+    "hasHealthInsurance": true,
+    "intendedMoveDate": "2027-03-01",
+    "personalReason": "the culture and quality of life"
+  }
+}
