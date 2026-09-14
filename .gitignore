@@ -43,3 +43,6 @@ next-env.d.ts
 
 # Claude Code harness-internal state
 .claude/
+
+# Local document storage (dev only — see lib/storage.ts)
+.data/
