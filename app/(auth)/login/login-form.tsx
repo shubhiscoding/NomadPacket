@@ -32,7 +32,7 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-3">
-      <label htmlFor="login-email" className="text-sm font-medium text-slate-700">
+      <label htmlFor="login-email" className="text-sm font-medium text-stone-700">
         Email
       </label>
       <input
@@ -42,7 +42,7 @@ export function LoginForm() {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="you@example.com"
-        className="rounded-lg border border-slate-200 px-4 py-3 text-sm text-slate-900 outline-none focus:border-teal-700"
+        className="rounded-lg border border-stone-200 px-4 py-3 text-sm text-stone-900 outline-none focus:border-teal-700"
       />
       {status === "error" && errorMessage && (
         <p className="text-sm text-red-600">{errorMessage}</p>

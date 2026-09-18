@@ -30,7 +30,7 @@ export function DeliveryActions({ applicationId }: { applicationId: string }) {
         type="button"
         onClick={handleEmailPacket}
         disabled={emailStatus === "sending"}
-        className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:border-slate-300 disabled:opacity-60"
+        className="rounded-lg border border-stone-200 px-4 py-2.5 text-sm font-medium text-stone-700 transition-colors hover:border-stone-300 disabled:opacity-60"
       >
         {emailStatus === "sending"
           ? "Sending…"

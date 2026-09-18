@@ -85,15 +85,15 @@ export default async function ChecklistPage({
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-16">
-      <p className="text-sm font-medium text-slate-500">NomadPacket</p>
-      <h1 className="mt-2 text-2xl font-semibold text-slate-900">Your document packet</h1>
-      <p className="mt-2 text-sm leading-relaxed text-slate-600">
+      <p className="text-sm font-medium text-stone-500">NomadPacket</p>
+      <h1 className="mt-2 text-2xl font-semibold text-stone-900">Your document packet</h1>
+      <p className="mt-2 text-sm leading-relaxed text-stone-600">
         Everything you need for your Portugal D8 residence visa application, in one place.
       </p>
 
       {/* Bucket 1 + 2 — documents we write for you */}
       <section className="mt-10">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-500">
           Documents we generate for you
         </h2>
 
@@ -110,10 +110,10 @@ export default async function ChecklistPage({
             return (
               <div
                 key={type}
-                className="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3"
+                className="flex items-center justify-between rounded-lg border border-stone-200 px-4 py-3"
               >
                 <div>
-                  <p className="text-sm font-medium text-slate-900">{BUCKET_1_2_LABELS[type]}</p>
+                  <p className="text-sm font-medium text-stone-900">{BUCKET_1_2_LABELS[type]}</p>
                   {isStubForm && (
                     <p className="text-xs text-amber-700">Preview only — sample form, not final</p>
                   )}
@@ -143,7 +143,7 @@ export default async function ChecklistPage({
         )}
 
         {generatedDocuments.length > 0 && (
-          <div className="mt-6 border-t border-slate-100 pt-6">
+          <div className="mt-6 border-t border-stone-100 pt-6">
             <DeliveryActions applicationId={id} />
           </div>
         )}
@@ -151,7 +151,7 @@ export default async function ChecklistPage({
 
       {/* Bucket 3 — self-sourced documents, with guidance */}
       <section className="mt-10">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-500">
           Documents you&apos;ll need to gather
         </h2>
 
@@ -199,7 +199,7 @@ export default async function ChecklistPage({
         </div>
       </section>
 
-      <p className="mt-10 text-xs leading-relaxed text-slate-400">
+      <p className="mt-10 text-xs leading-relaxed text-stone-400">
         This tool assembles documents based on publicly available Portuguese consulate and AIMA
         requirements. It does not provide legal advice and cannot guarantee visa approval — no
         service can. Requirements vary by consulate and may change; always confirm current
@@ -221,12 +221,12 @@ function ChecklistItem({
   description: string;
 }) {
   return (
-    <div className="rounded-lg border border-slate-200 px-4 py-3">
+    <div className="rounded-lg border border-stone-200 px-4 py-3">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-slate-900">{title}</p>
+        <p className="text-sm font-medium text-stone-900">{title}</p>
         <StatusPill status={status} />
       </div>
-      {description && <p className="mt-1 text-xs leading-relaxed text-slate-500">{description}</p>}
+      {description && <p className="mt-1 text-xs leading-relaxed text-stone-500">{description}</p>}
     </div>
   );
 }

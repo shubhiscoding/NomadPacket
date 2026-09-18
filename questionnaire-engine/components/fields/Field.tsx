@@ -20,16 +20,16 @@ export function Field({
   error?: string;
 }) {
   const inputClasses =
-    "w-full rounded-lg border border-slate-200 px-4 py-3 text-sm text-slate-900 outline-none focus:border-teal-700";
+    "w-full rounded-lg border border-stone-200 px-4 py-3 text-sm text-stone-900 outline-none focus:border-teal-700";
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={question.id} className="text-sm font-medium text-slate-700">
+      <label htmlFor={question.id} className="text-sm font-medium text-stone-700">
         {question.label}
-        {!question.required && <span className="ml-1 text-slate-400">(optional)</span>}
+        {!question.required && <span className="ml-1 text-stone-400">(optional)</span>}
       </label>
       {question.helpText && (
-        <p className="text-xs leading-relaxed text-slate-500">{question.helpText}</p>
+        <p className="text-xs leading-relaxed text-stone-500">{question.helpText}</p>
       )}
 
       {renderInput(question, value, onChange, inputClasses)}
@@ -121,7 +121,7 @@ function renderInput(
           {question.options?.map((option) => (
             <label
               key={option.value}
-              className="flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-3 text-sm text-slate-700"
+              className="flex items-center gap-2 rounded-lg border border-stone-200 px-4 py-3 text-sm text-stone-700"
             >
               <input
                 type="radio"
@@ -148,7 +148,7 @@ function renderInput(
               className={`rounded-lg border px-4 py-2 text-sm font-medium ${
                 value === option.val
                   ? "border-teal-700 bg-teal-50 text-teal-900"
-                  : "border-slate-200 text-slate-700"
+                  : "border-stone-200 text-stone-700"
               }`}
             >
               {option.label}
