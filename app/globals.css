@@ -1,8 +1,15 @@
 @import "tailwindcss";
 
+/*
+ * AGENTS.md §2 design language: muted, confident palette — a deep teal
+ * primary for headers/CTAs, warm neutral (stone, not cool slate) grays
+ * for body/background, green for "complete," amber for "action needed."
+ * No bright/saturated colors. Single light theme by design (a calm,
+ * "good accountant's site" tone doesn't need a dark-mode variant for v1).
+ */
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #1c1917; /* stone-900 */
 }
 
 @theme inline {
@@ -10,17 +17,17 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-heading: var(--font-heading);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-heading), serif;
 }

@@ -35,12 +35,12 @@ export default function StartPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-16">
-      <p className="text-sm font-medium text-slate-500">NomadPacket · Portugal</p>
-      <h1 className="mt-2 text-2xl font-semibold text-slate-900">
+    <main className="mx-auto flex flex-1 max-w-md flex-col justify-center px-6 py-16">
+      <p className="text-sm font-medium text-stone-500">NomadPacket · Portugal</p>
+      <h1 className="mt-2 text-2xl font-semibold text-stone-900">
         Which are you applying for?
       </h1>
-      <p className="mt-2 text-sm leading-relaxed text-slate-600">
+      <p className="mt-2 text-sm leading-relaxed text-stone-600">
         This determines which documents we help you assemble. You can check
         this before creating an account.
       </p>
@@ -57,7 +57,7 @@ export default function StartPage() {
               className={`rounded-lg border px-4 py-3 text-left text-sm font-medium transition-colors ${
                 isSelected
                   ? "border-teal-700 bg-teal-50 text-teal-900"
-                  : "border-slate-200 text-slate-700 hover:border-slate-300"
+                  : "border-stone-200 text-stone-700 hover:border-stone-300"
               }`}
             >
               {option.label}

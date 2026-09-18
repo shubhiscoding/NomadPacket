@@ -3,7 +3,7 @@ export type StatusPillValue = "done" | "action_needed" | "optional";
 const STYLES: Record<StatusPillValue, { label: string; className: string }> = {
   done: { label: "Done", className: "bg-emerald-50 text-emerald-800 border-emerald-200" },
   action_needed: { label: "Action Needed", className: "bg-amber-50 text-amber-800 border-amber-200" },
-  optional: { label: "Optional", className: "bg-slate-50 text-slate-500 border-slate-200" },
+  optional: { label: "Optional", className: "bg-stone-50 text-stone-500 border-stone-200" },
 };
 
 /**

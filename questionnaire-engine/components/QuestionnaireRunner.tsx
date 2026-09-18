@@ -108,7 +108,7 @@ export function QuestionnaireRunner({
           type="button"
           onClick={handleBack}
           disabled={groupIndex === 0}
-          className="rounded-lg px-4 py-3 text-sm font-medium text-slate-500 disabled:opacity-0"
+          className="rounded-lg px-4 py-3 text-sm font-medium text-stone-500 disabled:opacity-0"
         >
           Back
         </button>
