@@ -14,6 +14,7 @@ import { checkAccommodation, checkHealthInsurance, checkPassportValidity } from 
 import type { Answers } from "@/questionnaire-engine/types";
 import { StatusPill } from "@/components/StatusPill";
 import { GenerateDocumentsButton } from "./generate-documents-button";
+import { DeliveryActions } from "./delivery-actions";
 import type { DocumentType } from "@prisma/client";
 
 const BUCKET_1_2_LABELS: Record<DocumentType, string> = {
@@ -138,6 +139,12 @@ export default async function ChecklistPage({
         {questionnaireComplete && (
           <div className="mt-4">
             <GenerateDocumentsButton applicationId={id} />
+          </div>
+        )}
+
+        {generatedDocuments.length > 0 && (
+          <div className="mt-6 border-t border-slate-100 pt-6">
+            <DeliveryActions applicationId={id} />
           </div>
         )}
       </section>
