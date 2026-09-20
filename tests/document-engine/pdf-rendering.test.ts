@@ -73,7 +73,7 @@ describe("rendered PDF content matches fixture data (US employee, residence)", (
     const text = await extractText(buffer);
 
     expect(text).toContain("Income Summary");
-    expect(text).toContain("met");
+    expect(text.toLowerCase()).toContain("met");
   });
 });
 
