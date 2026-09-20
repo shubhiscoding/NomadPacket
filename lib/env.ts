@@ -14,8 +14,22 @@ const envSchema = z.object({
 
   DATABASE_URL: z.string().min(1),
 
+  // Used by lib/gate-context.ts to sign the qualifier-gate cookie — unrelated
+  // to the (now dormant) magic-link auth system despite the name.
   SESSION_SECRET: z.string().min(16, "SESSION_SECRET must be at least 16 characters"),
 
+  // Auth.js v5 — Google OAuth only (magic-link is dormant, see
+  // auth/legacy-session.ts). Auth.js reads AUTH_SECRET and
+  // AUTH_GOOGLE_ID/AUTH_GOOGLE_SECRET itself by convention; validated here
+  // too so a missing key fails fast at boot with a clear message rather
+  // than a confusing runtime error the first time someone tries to sign in.
+  AUTH_SECRET: z.string().min(16, "AUTH_SECRET must be at least 16 characters"),
+  AUTH_GOOGLE_ID: z.string().min(1),
+  AUTH_GOOGLE_SECRET: z.string().min(1),
+
+  // Still used for the packet-ready delivery email (AGENTS.md build order
+  // step 9) — only the magic-link SIGN-IN email was dropped for cost
+  // reasons, not transactional delivery email generally.
   RESEND_API_KEY: z.string().min(1),
   RESEND_FROM_EMAIL: z.string().email(),
 

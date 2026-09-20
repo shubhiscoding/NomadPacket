@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSessionUserFromRequest } from "@/auth/session";
-import { prisma } from "@/lib/prisma";
+import { loadOwnedApplication } from "@/lib/load-owned-application";
 import { buildPacketZip } from "@/lib/packaging";
 import { hasEntitlement } from "@/entitlement/guard";
 
@@ -13,18 +12,13 @@ import { hasEntitlement } from "@/entitlement/guard";
  * guard.ts for why it's currently a stub returning true.
  */
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
 
-  const user = await getSessionUserFromRequest(request);
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const application = await prisma.application.findUnique({ where: { id } });
-  if (!application || application.userId !== user.id) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
+  const result = await loadOwnedApplication(id);
+  if ("error" in result) return result.error;
 
   if (!(await hasEntitlement(id))) {
     return NextResponse.json({ error: "Payment required" }, { status: 402 });

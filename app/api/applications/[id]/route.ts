@@ -1,29 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getSessionUserFromRequest } from "@/auth/session";
 import { prisma } from "@/lib/prisma";
+import { loadOwnedApplication } from "@/lib/load-owned-application";
 import { getQuestionnaireConfig } from "@/questionnaire-engine/registry";
 import { validateAnswers } from "@/questionnaire-engine/engine";
 import type { Answers } from "@/questionnaire-engine/types";
 
-async function loadOwnedApplication(request: NextRequest, id: string) {
-  const user = await getSessionUserFromRequest(request);
-  if (!user) return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
-
-  const application = await prisma.application.findUnique({ where: { id } });
-  if (!application || application.userId !== user.id) {
-    return { error: NextResponse.json({ error: "Not found" }, { status: 404 }) };
-  }
-
-  return { application };
-}
-
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const result = await loadOwnedApplication(request, id);
+  const result = await loadOwnedApplication(id);
   if ("error" in result) return result.error;
 
   return NextResponse.json({ application: result.application });
@@ -47,7 +35,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const result = await loadOwnedApplication(request, id);
+  const result = await loadOwnedApplication(id);
   if ("error" in result) return result.error;
   const { application } = result;
 

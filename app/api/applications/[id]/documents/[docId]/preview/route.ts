@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSessionUserFromRequest } from "@/auth/session";
 import { prisma } from "@/lib/prisma";
+import { loadOwnedApplication } from "@/lib/load-owned-application";
 import { loadDocument } from "@/lib/storage";
 
 /**
@@ -11,18 +11,13 @@ import { loadDocument } from "@/lib/storage";
  * not this. Still requires ownership (session + application match).
  */
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string; docId: string }> },
 ) {
   const { id, docId } = await params;
 
-  const user = await getSessionUserFromRequest(request);
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const application = await prisma.application.findUnique({ where: { id } });
-  if (!application || application.userId !== user.id) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
+  const result = await loadOwnedApplication(id);
+  if ("error" in result) return result.error;
 
   const document = await prisma.generatedDocument.findUnique({ where: { id: docId } });
   if (!document || document.applicationId !== id) {
