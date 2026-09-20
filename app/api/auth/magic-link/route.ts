@@ -6,6 +6,12 @@ import { GATE_CONTEXT_COOKIE_NAME, verifyGateContextCookieValue } from "@/lib/ga
 const bodySchema = z.object({ email: z.string().email() });
 
 /**
+ * ⚠️ DORMANT, UNROUTED — nothing links here anymore; /start now redirects
+ * supported selections to /signin (Google via Auth.js), not /login. Kept
+ * per explicit instruction rather than deleted. Also: sending this email
+ * costs real Resend usage per sign-in attempt, which was the actual
+ * reason Google-only replaced it.
+ *
  * Auth is only reachable after a valid, supported qualifier-gate context
  * exists (AGENTS.md build order: gate before auth) — enforced here
  * server-side, not just by the /login page's UI redirect, so this route

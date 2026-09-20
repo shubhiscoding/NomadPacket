@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { consumeMagicLinkToken } from "@/auth/token";
-import { createSessionRecord, SESSION_COOKIE_NAME } from "@/auth/session";
+import { createLegacySessionRecord, LEGACY_SESSION_COOKIE_NAME } from "@/auth/legacy-session";
 import { prisma } from "@/lib/prisma";
 
 /**
+ * ⚠️ DORMANT, UNROUTED — nothing links here anymore (auth/auth.ts +
+ * /signin is the active Google-only sign-in flow). Kept per explicit
+ * instruction rather than deleted; updated to the renamed
+ * auth/legacy-session.ts exports so it still compiles, not left dangling.
+ *
  * Consumes a magic-link token from the emailed URL: verifies + single-use
- * marks it, upserts the User by email, creates a Session, sets the session
- * cookie, and redirects into the app. /application is responsible for
- * either creating a new Application (from the gate-context cookie set on
- * /start) or resuming an existing one — this route only establishes
- * identity.
+ * marks it, upserts the User by email, creates a LegacySession, sets the
+ * session cookie, and redirects into the app.
  */
 export async function GET(request: NextRequest) {
   const token = request.nextUrl.searchParams.get("token");
@@ -30,10 +32,10 @@ export async function GET(request: NextRequest) {
     update: {},
   });
 
-  const { rawToken, expiresAt } = await createSessionRecord(user.id);
+  const { rawToken, expiresAt } = await createLegacySessionRecord(user.id);
 
   const response = NextResponse.redirect(new URL("/application", request.url));
-  response.cookies.set(SESSION_COOKIE_NAME, rawToken, {
+  response.cookies.set(LEGACY_SESSION_COOKIE_NAME, rawToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",

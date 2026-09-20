@@ -28,7 +28,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ redirectTo });
   }
 
-  const response = NextResponse.json({ redirectTo: "/login" });
+  // Google-only sign-in now (see auth/auth.ts) — /login (magic-link) is
+  // dormant, kept but unrouted.
+  const response = NextResponse.json({ redirectTo: "/signin" });
   response.cookies.set(
     GATE_CONTEXT_COOKIE_NAME,
     createGateContextCookieValue({ country, visaType }),

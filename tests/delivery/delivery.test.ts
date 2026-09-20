@@ -1,20 +1,32 @@
-import { describe, expect, it, beforeAll, afterAll, vi } from "vitest";
+import { describe, expect, it, beforeAll, beforeEach, afterAll, vi } from "vitest";
 import { NextRequest } from "next/server";
 import JSZip from "jszip";
 import { prisma } from "@/lib/prisma";
 import { generateApplicationDocuments } from "@/document-engine/generate-packet";
 import { __clearFxCacheForTests } from "@/lib/fx";
-import { createTestSessionCookie } from "../test-helpers/session";
+import { createTestUser } from "../test-helpers/session";
 import employeeUsFixture from "../fixtures/us-employee-residence.json";
+import type { User } from "@prisma/client";
+
+// Auth is Google-only via Auth.js v5 now — mock at the module boundary
+// rather than construct a real session (see tests/test-helpers/session.ts).
+vi.mock("@/auth/current-user", () => ({ getCurrentUser: vi.fn() }));
+import { getCurrentUser } from "@/auth/current-user";
 
 const TEST_EMAIL = "delivery-test@example.com";
 const OTHER_EMAIL = "delivery-test-other@example.com";
 let applicationId: string;
+let testUser: User;
+let otherUser: User;
 
 const sendMock = vi.fn();
 vi.mock("@/notifications/resend-client", () => ({
   getResendClient: () => ({ emails: { send: sendMock } }),
 }));
+
+beforeEach(() => {
+  vi.mocked(getCurrentUser).mockReset();
+});
 
 beforeAll(async () => {
   __clearFxCacheForTests();
@@ -23,10 +35,11 @@ beforeAll(async () => {
     vi.fn().mockResolvedValue({ ok: true, json: async () => ({ rates: { EUR: 1 } }) }),
   );
 
-  const { userId } = await createTestSessionCookie(TEST_EMAIL);
+  testUser = await createTestUser(TEST_EMAIL);
+  otherUser = await createTestUser(OTHER_EMAIL);
   const application = await prisma.application.create({
     data: {
-      userId,
+      userId: testUser.id,
       country: employeeUsFixture.country,
       visaType: employeeUsFixture.visaType,
       answers: employeeUsFixture.answers,
@@ -42,7 +55,6 @@ afterAll(async () => {
     if (user) {
       await prisma.generatedDocument.deleteMany({ where: { application: { userId: user.id } } });
       await prisma.application.deleteMany({ where: { userId: user.id } });
-      await prisma.session.deleteMany({ where: { userId: user.id } });
       await prisma.user.delete({ where: { id: user.id } });
     }
   }
@@ -51,6 +63,7 @@ afterAll(async () => {
 
 describe("GET /api/documents/[id]/download", () => {
   it("requires a session", async () => {
+    vi.mocked(getCurrentUser).mockResolvedValue(null);
     const { GET } = await import("@/app/api/documents/[id]/download/route");
     const res = await GET(
       new NextRequest(`http://localhost:3000/api/documents/${applicationId}/download`),
@@ -60,24 +73,20 @@ describe("GET /api/documents/[id]/download", () => {
   });
 
   it("rejects another user's application", async () => {
-    const { cookieHeader } = await createTestSessionCookie(OTHER_EMAIL);
+    vi.mocked(getCurrentUser).mockResolvedValue(otherUser);
     const { GET } = await import("@/app/api/documents/[id]/download/route");
     const res = await GET(
-      new NextRequest(`http://localhost:3000/api/documents/${applicationId}/download`, {
-        headers: { cookie: cookieHeader },
-      }),
+      new NextRequest(`http://localhost:3000/api/documents/${applicationId}/download`),
       { params: Promise.resolve({ id: applicationId }) },
     );
     expect(res.status).toBe(404);
   });
 
   it("returns a ZIP containing every generated document", async () => {
-    const { cookieHeader } = await createTestSessionCookie(TEST_EMAIL);
+    vi.mocked(getCurrentUser).mockResolvedValue(testUser);
     const { GET } = await import("@/app/api/documents/[id]/download/route");
     const res = await GET(
-      new NextRequest(`http://localhost:3000/api/documents/${applicationId}/download`, {
-        headers: { cookie: cookieHeader },
-      }),
+      new NextRequest(`http://localhost:3000/api/documents/${applicationId}/download`),
       { params: Promise.resolve({ id: applicationId }) },
     );
     expect(res.status).toBe(200);
@@ -93,16 +102,13 @@ describe("GET /api/documents/[id]/download", () => {
   });
 
   it("returns 409 for an application with no generated documents yet", async () => {
-    const { userId } = await createTestSessionCookie(TEST_EMAIL);
+    vi.mocked(getCurrentUser).mockResolvedValue(testUser);
     const emptyApplication = await prisma.application.create({
-      data: { userId, country: "PT", visaType: "D8_RESIDENCE" },
+      data: { userId: testUser.id, country: "PT", visaType: "D8_RESIDENCE" },
     });
-    const { cookieHeader } = await createTestSessionCookie(TEST_EMAIL);
     const { GET } = await import("@/app/api/documents/[id]/download/route");
     const res = await GET(
-      new NextRequest(`http://localhost:3000/api/documents/${emptyApplication.id}/download`, {
-        headers: { cookie: cookieHeader },
-      }),
+      new NextRequest(`http://localhost:3000/api/documents/${emptyApplication.id}/download`),
       { params: Promise.resolve({ id: emptyApplication.id }) },
     );
     expect(res.status).toBe(409);
@@ -112,13 +118,12 @@ describe("GET /api/documents/[id]/download", () => {
 
 describe("POST /api/applications/[id]/email-packet", () => {
   it("sends the packet as an email attachment to the signed-in user's own address", async () => {
+    vi.mocked(getCurrentUser).mockResolvedValue(testUser);
     sendMock.mockResolvedValueOnce({ data: { id: "email_123" }, error: null });
-    const { cookieHeader } = await createTestSessionCookie(TEST_EMAIL);
     const { POST } = await import("@/app/api/applications/[id]/email-packet/route");
     const res = await POST(
       new NextRequest(`http://localhost:3000/api/applications/${applicationId}/email-packet`, {
         method: "POST",
-        headers: { cookie: cookieHeader },
       }),
       { params: Promise.resolve({ id: applicationId }) },
     );
@@ -130,16 +135,15 @@ describe("POST /api/applications/[id]/email-packet", () => {
   });
 
   it("surfaces a 502 (not a false 200) when Resend fails", async () => {
+    vi.mocked(getCurrentUser).mockResolvedValue(testUser);
     sendMock.mockResolvedValueOnce({
       data: null,
       error: { statusCode: 401, name: "validation_error", message: "API key is invalid" },
     });
-    const { cookieHeader } = await createTestSessionCookie(TEST_EMAIL);
     const { POST } = await import("@/app/api/applications/[id]/email-packet/route");
     const res = await POST(
       new NextRequest(`http://localhost:3000/api/applications/${applicationId}/email-packet`, {
         method: "POST",
-        headers: { cookie: cookieHeader },
       }),
       { params: Promise.resolve({ id: applicationId }) },
     );

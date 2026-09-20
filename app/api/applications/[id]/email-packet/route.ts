@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSessionUserFromRequest } from "@/auth/session";
 import { prisma } from "@/lib/prisma";
+import { loadOwnedApplication } from "@/lib/load-owned-application";
 import { buildPacketZip } from "@/lib/packaging";
 import { hasEntitlement } from "@/entitlement/guard";
 import { sendPacketReadyEmail } from "@/notifications/send";
@@ -12,18 +12,14 @@ import { sendPacketReadyEmail } from "@/notifications/send";
  * route, since this is an equivalent way to get the paid packet out.
  */
 export async function POST(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
 
-  const user = await getSessionUserFromRequest(request);
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const application = await prisma.application.findUnique({ where: { id } });
-  if (!application || application.userId !== user.id) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
+  const result = await loadOwnedApplication(id);
+  if ("error" in result) return result.error;
+  const { application } = result;
 
   if (!(await hasEntitlement(id))) {
     return NextResponse.json({ error: "Payment required" }, { status: 402 });
@@ -35,6 +31,8 @@ export async function POST(
   } catch {
     return NextResponse.json({ error: "No documents generated yet" }, { status: 409 });
   }
+
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: application.userId } });
 
   try {
     await sendPacketReadyEmail({

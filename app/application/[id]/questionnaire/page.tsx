@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { getSessionUser } from "@/auth/session";
+import { getCurrentUser } from "@/auth/current-user";
 import { prisma } from "@/lib/prisma";
 import { getQuestionnaireConfig } from "@/questionnaire-engine/registry";
 import { QuestionnaireRunner } from "@/questionnaire-engine/components/QuestionnaireRunner";
@@ -11,8 +11,8 @@ export default async function QuestionnairePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const user = await getSessionUser();
-  if (!user) redirect("/login");
+  const user = await getCurrentUser();
+  if (!user) redirect("/signin");
 
   const application = await prisma.application.findUnique({ where: { id } });
   if (!application || application.userId !== user.id) notFound();

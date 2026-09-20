@@ -31,7 +31,7 @@ describe("POST /api/qualifier", () => {
       }),
     );
     const json = await res.json();
-    expect(json.redirectTo).toBe("/login");
+    expect(json.redirectTo).toBe("/signin"); // Google-only sign-in now (see auth/auth.ts)
 
     const setCookie = res.cookies.get(GATE_CONTEXT_COOKIE_NAME);
     expect(setCookie?.value).toBeTruthy();

@@ -4,6 +4,10 @@ import { GATE_CONTEXT_COOKIE_NAME, verifyGateContextCookieValue } from "@/lib/ga
 import { LoginForm } from "./login-form";
 
 /**
+ * ⚠️ DORMANT, UNROUTED — /start now sends supported selections to
+ * /signin (Google via Auth.js), not here. Kept per explicit instruction
+ * rather than deleted; still fully functional if hit directly by URL.
+ *
  * Only reachable with a valid, unexpired gate-context cookie (set by
  * /start via POST /api/qualifier) — auth is structurally unreachable
  * without first passing the qualifier gate, not just discouraged by UI.

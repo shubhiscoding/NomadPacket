@@ -1,15 +1,25 @@
-import { describe, expect, it, afterAll } from "vitest";
+import { describe, expect, it, afterAll, beforeEach, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createTestSessionCookie, gateContextCookieHeader } from "../test-helpers/session";
+import { createTestUser, gateContextCookieHeader } from "../test-helpers/session";
+
+// Auth is Google-only via Auth.js v5 now — auth() reads cookies through
+// next/headers, which only works inside Next's real request lifecycle,
+// not when a test calls a route handler function directly. Mock at the
+// module boundary instead (see tests/test-helpers/session.ts).
+vi.mock("@/auth/current-user", () => ({ getCurrentUser: vi.fn() }));
+import { getCurrentUser } from "@/auth/current-user";
 
 const TEST_EMAIL = "applications-route-test@example.com";
+
+beforeEach(() => {
+  vi.mocked(getCurrentUser).mockReset();
+});
 
 afterAll(async () => {
   const user = await prisma.user.findUnique({ where: { email: TEST_EMAIL } });
   if (user) {
     await prisma.application.deleteMany({ where: { userId: user.id } });
-    await prisma.session.deleteMany({ where: { userId: user.id } });
     await prisma.user.delete({ where: { id: user.id } });
   }
   await prisma.$disconnect();
@@ -17,31 +27,29 @@ afterAll(async () => {
 
 describe("POST /api/applications", () => {
   it("requires a session", async () => {
+    vi.mocked(getCurrentUser).mockResolvedValue(null);
     const { POST } = await import("@/app/api/applications/route");
     const res = await POST(new NextRequest("http://localhost:3000/api/applications", { method: "POST" }));
     expect(res.status).toBe(401);
   });
 
   it("requires a valid gate-context cookie even when signed in", async () => {
-    const { cookieHeader } = await createTestSessionCookie(TEST_EMAIL);
+    const user = await createTestUser(TEST_EMAIL);
+    vi.mocked(getCurrentUser).mockResolvedValue(user);
     const { POST } = await import("@/app/api/applications/route");
-    const res = await POST(
-      new NextRequest("http://localhost:3000/api/applications", {
-        method: "POST",
-        headers: { cookie: cookieHeader },
-      }),
-    );
+    const res = await POST(new NextRequest("http://localhost:3000/api/applications", { method: "POST" }));
     expect(res.status).toBe(403);
   });
 
   it("creates an Application with country/visaType fixed from the gate context", async () => {
-    const { cookieHeader } = await createTestSessionCookie(TEST_EMAIL);
+    const user = await createTestUser(TEST_EMAIL);
+    vi.mocked(getCurrentUser).mockResolvedValue(user);
     const gateCookie = gateContextCookieHeader("PT", "D8_RESIDENCE");
     const { POST } = await import("@/app/api/applications/route");
     const res = await POST(
       new NextRequest("http://localhost:3000/api/applications", {
         method: "POST",
-        headers: { cookie: `${cookieHeader}; ${gateCookie}` },
+        headers: { cookie: gateCookie },
       }),
     );
     expect(res.status).toBe(201);
@@ -54,12 +62,14 @@ describe("POST /api/applications", () => {
 
 describe("PATCH /api/applications/[id]", () => {
   it("saves partial answers incrementally and reports validation errors without losing progress", async () => {
-    const { cookieHeader } = await createTestSessionCookie(TEST_EMAIL);
+    const user = await createTestUser(TEST_EMAIL);
+    vi.mocked(getCurrentUser).mockResolvedValue(user);
+
     const { POST } = await import("@/app/api/applications/route");
     const createRes = await POST(
       new NextRequest("http://localhost:3000/api/applications", {
         method: "POST",
-        headers: { cookie: `${cookieHeader}; ${gateContextCookieHeader("PT", "D8_RESIDENCE")}` },
+        headers: { cookie: gateContextCookieHeader("PT", "D8_RESIDENCE") },
       }),
     );
     const { application } = await createRes.json();
@@ -70,7 +80,7 @@ describe("PATCH /api/applications/[id]", () => {
     const firstPatch = await PATCH(
       new NextRequest(`http://localhost:3000/api/applications/${application.id}`, {
         method: "PATCH",
-        headers: { cookie: cookieHeader, "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ answers: { fullLegalName: "Jane Doe" } }),
       }),
       { params: Promise.resolve({ id: application.id }) },
@@ -84,7 +94,7 @@ describe("PATCH /api/applications/[id]", () => {
     const secondPatch = await PATCH(
       new NextRequest(`http://localhost:3000/api/applications/${application.id}`, {
         method: "PATCH",
-        headers: { cookie: cookieHeader, "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ answers: { nationality: "US" } }),
       }),
       { params: Promise.resolve({ id: application.id }) },
@@ -95,24 +105,24 @@ describe("PATCH /api/applications/[id]", () => {
   });
 
   it("rejects access to another user's application", async () => {
-    const { cookieHeader: ownerCookie } = await createTestSessionCookie(TEST_EMAIL);
+    const owner = await createTestUser(TEST_EMAIL);
+    vi.mocked(getCurrentUser).mockResolvedValue(owner);
+
     const { POST } = await import("@/app/api/applications/route");
     const createRes = await POST(
       new NextRequest("http://localhost:3000/api/applications", {
         method: "POST",
-        headers: { cookie: `${ownerCookie}; ${gateContextCookieHeader("PT", "D8_RESIDENCE")}` },
+        headers: { cookie: gateContextCookieHeader("PT", "D8_RESIDENCE") },
       }),
     );
     const { application } = await createRes.json();
 
-    const { cookieHeader: otherCookie } = await createTestSessionCookie(
-      "applications-route-test-other@example.com",
-    );
+    const other = await createTestUser("applications-route-test-other@example.com");
+    vi.mocked(getCurrentUser).mockResolvedValue(other);
+
     const { GET } = await import("@/app/api/applications/[id]/route");
     const res = await GET(
-      new NextRequest(`http://localhost:3000/api/applications/${application.id}`, {
-        headers: { cookie: otherCookie },
-      }),
+      new NextRequest(`http://localhost:3000/api/applications/${application.id}`),
       { params: Promise.resolve({ id: application.id }) },
     );
     expect(res!.status).toBe(404);

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSessionUserFromRequest } from "@/auth/session";
+import { getCurrentUser } from "@/auth/current-user";
 import { GATE_CONTEXT_COOKIE_NAME, verifyGateContextCookieValue } from "@/lib/gate-context";
 import { isSupported } from "@/country-config/qualifier-gate";
 import { prisma } from "@/lib/prisma";
@@ -11,8 +11,8 @@ import { prisma } from "@/lib/prisma";
  * questionnaire never asks it again (AGENTS.md build order: gate before
  * auth, auth before questionnaire).
  */
-export async function GET(request: NextRequest) {
-  const user = await getSessionUserFromRequest(request);
+export async function GET() {
+  const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const applications = await prisma.application.findMany({
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const user = await getSessionUserFromRequest(request);
+  const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const gateContext = verifyGateContextCookieValue(
