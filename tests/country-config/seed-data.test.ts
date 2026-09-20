@@ -58,12 +58,12 @@ describe("seeded Portugal D8_RESIDENCE config matches country-config source file
     },
   );
 
-  it("form-fill mapping is flagged as a stub", async () => {
+  it("form-fill mapping points at the real government form, not a stub", async () => {
     const result = await resolveConfigValue<FormFieldMapping>({
       country: "PT",
       visaType: "D8_RESIDENCE",
       key: "formFill.nationalVisaForm.fieldMapping",
     });
-    expect(result?.value.isStub).toBe(true);
+    expect(result?.value.isStub).toBe(false);
   });
 });

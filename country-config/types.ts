@@ -70,8 +70,19 @@ export interface CriminalRecordBranchInstructions {
   howToObtain: string[];
   isHagueApostilleMember: boolean;
   legalizationInstructions: string;
+  /**
+   * Conservative default — English-language documents are sometimes
+   * accepted without translation depending on the specific consulate, not
+   * just the home country. `true` here means "assume you'll need one
+   * unless your consulate says otherwise," not a confirmed universal rule.
+   * `translationNote` carries the caveat; always show it alongside this
+   * flag rather than presenting the boolean as a flat fact.
+   */
   translationRequired: boolean;
+  translationNote: string;
   freshnessRuleDays: number;
+  /** Where you actually submit — differs by home country (e.g. VFS Global vs. direct consulate). */
+  submissionChannelNote?: string;
 }
 
 export interface NifBranchInstructions {
@@ -81,14 +92,43 @@ export interface NifBranchInstructions {
 }
 
 export interface FormFieldSource {
+  /**
+   * A QuestionId, OR a synthetic derived key (e.g. "surname", "givenNames",
+   * "occupationLabel") computed from answers before filling — see
+   * document-engine/form-fill/derive-overlay-values.ts. Kept as a plain
+   * string (not the strict QuestionId union) so this stays decoupled from
+   * questionnaire-engine and derived-value keys can coexist.
+   */
   questionId: string;
+}
+
+/**
+ * A single value overlaid onto the PDF at an absolute position. Portugal's
+ * real national visa form (like most official government forms) has NO
+ * fillable AcroForm fields — it's a flat, print-and-hand-fill PDF — so
+ * pre-fill means drawing text on top of it at measured coordinates, not
+ * setting a named form field. `page` is 0-based; `x`/`y` are in PDF points
+ * from the bottom-left of the page (pdf-lib's coordinate system).
+ */
+export interface FormFieldOverlay {
+  page: number;
+  x: number;
+  y: number;
+  source: FormFieldSource;
+  fontSize?: number;
 }
 
 export interface FormFieldMapping {
   formAssetPath: string;
-  /** True until the real official PDF has been sourced and mapped. */
+  /**
+   * True until the real official PDF has been sourced and mapped. False
+   * means `formAssetPath` points at the actual government/VFS-Global-
+   * sourced form and `fields` are real, measured coordinates — not a
+   * guarantee every field is pixel-perfect; see the form-fill README for
+   * what's still a visual-QA follow-up vs. what's a genuine blocker.
+   */
   isStub: boolean;
-  fields: Array<{ pdfFieldName: string; source: FormFieldSource }>;
+  fields: FormFieldOverlay[];
 }
 
 export interface QualifierGateEntry {
