@@ -186,6 +186,6 @@ describe("isQuestionnaireComplete — full happy-path fixtures", () => {
 describe("getVisibleGroups", () => {
   it("drops groups with no currently-visible questions and preserves config order", () => {
     const groups = getVisibleGroups(portugalD8ResidenceQuestionnaire, {});
-    expect(groups.map((g) => g.section)).toEqual(["A", "B", "C", "D"]);
+    expect(groups.map((g) => g.section)).toEqual(["A", "B", "C", "D", "E"]);
   });
 });
