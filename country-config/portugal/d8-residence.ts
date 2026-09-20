@@ -27,22 +27,26 @@ export const portugalD8ResidenceConfig = {
       key: CountryConfigKey.EligibilityMonthlyIncomeThreshold,
       value: monthlyIncomeThreshold2026,
       sourceUrl:
-        "https://www.globalcitizensolutions.com/portugal-digital-nomad-visa/",
+        "https://www.vfsglobal.com/one-pager/portugal/usa/english/pdf/Digital-Nomad-Checklist.pdf",
       sourceNote:
-        "€3,680 = 4x Portugal's 2026 minimum wage, per Product Spec (v1).md " +
-        "§1, cross-checked against 2026 immigration-advisory publications on " +
-        "2026-09-14. Not an official AIMA/consulate primary source.",
+        "€3,680 = 4x Portugal's 2026 minimum wage (RMMG). Cross-checked " +
+        "against VFS Global's own D8/digital-nomad checklist (Portugal's " +
+        "official outsourced visa partner), which states the requirement as " +
+        "4x RMMG and cites Portaria n.º 1563/2007, retrieved 2026-09-20. The " +
+        "exact euro figure isn't stated verbatim in any one document — it's " +
+        "computed from the current RMMG, set by a separate annual decree.",
     },
     {
       key: CountryConfigKey.EligibilityDependentsIncomeAddition,
       value: dependentsIncomeAddition2026,
       sourceUrl:
-        "https://www.jobbatical.com/blog/d8-visa-portugal-family-reunification",
+        "https://vistos.mne.gov.pt/images/schengen/portaria1563_2007_meios_de_subsist.pdf",
       sourceNote:
-        "+50% spouse / +30% per child is corroborated across multiple 2026 " +
-        "sources; the BASE (minimum wage vs. D8 threshold) is reported " +
-        "inconsistently — appliesTo is UNVERIFIED until confirmed against an " +
-        "official source. See country-config/portugal/eligibility.ts.",
+        "Portaria n.º 1563/2007, de 11 de Dezembro, Art. 2.º §2 (applied to " +
+        "residence visas via Art. 5.º) — primary government legal source, " +
+        "read in full 2026-09-20. Confirms the base is the RMMG (minimum " +
+        "wage), resolving the earlier MINIMUM_WAGE-vs-D8_THRESHOLD ambiguity. " +
+        "See country-config/portugal/eligibility.ts.",
     },
     {
       key: CountryConfigKey.EligibilitySavingsBufferGuideline,

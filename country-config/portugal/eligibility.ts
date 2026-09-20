@@ -15,30 +15,47 @@ import type {
  *
  * Source: Product Spec (v1).md §1 ("Monthly income ≥ €3,680, pegged to 4×
  * Portugal's minimum wage"), cross-checked against 2026 immigration-advisory
- * publications (e.g. globalcitizensolutions.com/portugal-digital-nomad-visa,
- * citizenremote.com/visas/portugal-digital-nomad-visa) on 2026-09-14. Not an
- * official AIMA/consulate primary source — re-verify against an official
- * source before launch and whenever the January figure updates.
+ * publications on 2026-09-14, then against VFS Global's own official D8/
+ * digital-nomad checklist (vfsglobal.com/one-pager/portugal/usa/english/pdf/
+ * Digital-Nomad-Checklist.pdf, retrieved 2026-09-20) — which states the
+ * requirement as "average monthly income ... minimum value equivalent to
+ * four monthly minimum guaranty remuneration" and cites Portaria n.º
+ * 1563/2007 as its legal basis, corroborating the 4x-RMMG formula directly
+ * from Portugal's official visa-partner documentation. €3,680 itself is a
+ * COMPUTED figure (4x the RMMG minimum wage, which the government sets by a
+ * separate annual decree) rather than a number stated verbatim in any one
+ * document — re-verify the current RMMG and recompute each January.
  */
 export const monthlyIncomeThreshold2026: EligibilityMonthlyIncomeThreshold = {
   amountEur: 3680,
 };
 
 /**
- * Dependents income-addition formula. The +50% (spouse) / +30% (per child)
- * SHAPE is corroborated across every 2026 source checked, but the BASE they
- * multiply is reported inconsistently — some sources apply it to Portugal's
- * €920 minimum wage (→ +€460 / +€276), others to the D8's own €3,680
- * threshold (→ +€1,840 / +€1,104). This is a genuine, unresolved
- * discrepancy, not something to silently pick — both are carried, appliesTo
- * is left UNVERIFIED, and the UI must show both figures with a
- * "confirm with your consulate" notice until this is resolved against an
- * official source. See sourceNote in seed.ts for full citation.
+ * Dependents income-addition formula — RESOLVED against a primary legal
+ * source. Portaria n.º 1563/2007, de 11 de Dezembro (Diário da República,
+ * 1.ª série, N.º 238, Art. 2.º §2), fixes Portugal's general "meios de
+ * subsistência" (means of subsistence) per-capita formula against the
+ * RMMG (retribuição mínima mensal garantida — the national minimum wage),
+ * not against any visa-specific enhanced threshold:
+ *   a) Primeiro adulto: 100%
+ *   b) Segundo ou mais adultos: 50%
+ *   c) Crianças e jovens <18 e filhos maiores a cargo: 30%
+ * Art. 5.º ("Visto de residência") applies this same Art. 2.º §2 formula to
+ * residence-visa applicants, which is what D8 is. D8's well-documented
+ * "4x RMMG" figure for the primary applicant is a visa-specific enhancement
+ * on top of this ordinance — the dependent add-on percentages themselves
+ * are computed on the RMMG, not on the enhanced 4x figure. Full text:
+ * https://vistos.mne.gov.pt/images/schengen/portaria1563_2007_meios_de_subsist.pdf
+ * (government-hosted primary source), retrieved and read in full 2026-09-20.
+ *
+ * The D8_THRESHOLD interpretation is kept alongside for transparency (it's
+ * what a handful of consultancy sources state, incorrectly per the above),
+ * but MINIMUM_WAGE is the governing figure.
  */
 export const dependentsIncomeAddition2026: EligibilityDependentsIncomeAddition = {
   spousePercent: 50,
   childPercent: 30,
-  appliesTo: "UNVERIFIED",
+  appliesTo: "MINIMUM_WAGE",
   interpretations: [
     { appliesTo: "MINIMUM_WAGE", spouseAdditionEur: 460, childAdditionEur: 276 },
     { appliesTo: "D8_THRESHOLD", spouseAdditionEur: 1840, childAdditionEur: 1104 },

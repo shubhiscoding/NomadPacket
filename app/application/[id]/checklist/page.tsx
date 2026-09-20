@@ -177,7 +177,15 @@ export default async function ChecklistPage({
             status="action_needed"
             description={
               criminalRecordResult
-                ? `${criminalRecordResult.value.issuingAuthority}. ${criminalRecordResult.value.howToObtain[0]} ${criminalRecordResult.value.legalizationInstructions}`
+                ? [
+                    criminalRecordResult.value.issuingAuthority,
+                    criminalRecordResult.value.howToObtain[0],
+                    criminalRecordResult.value.legalizationInstructions,
+                    criminalRecordResult.value.translationNote,
+                    criminalRecordResult.value.submissionChannelNote,
+                  ]
+                    .filter(Boolean)
+                    .join(" ")
                 : "Nationality not set yet — answer the questionnaire to see country-specific guidance."
             }
           />
