@@ -40,17 +40,69 @@ function occupationLabel(employmentType: string | undefined): string {
   return OCCUPATION_LABELS[employmentType ?? ""] ?? "";
 }
 
+/** Matches the nationality options in questionnaire-engine/configs/portugal-d8-residence.questionnaire.ts. */
+const NATIONALITY_LABELS: Record<string, string> = {
+  US: "United States",
+  UK: "United Kingdom",
+  CA: "Canada",
+};
+
+function nationalityLabel(nationality: string | undefined): string {
+  return NATIONALITY_LABELS[nationality ?? ""] ?? (nationality ?? "");
+}
+
+/**
+ * "true"/"" (never any other value) — fill.ts only marks a checkbox
+ * overlay when the derived value is exactly "true". Booleans-as-strings
+ * because deriveOverlayValues' return type is Record<string, string>,
+ * matching every other derived/raw value.
+ */
+function boolFlag(value: boolean): string {
+  return value ? "true" : "";
+}
+
 /**
  * Builds the flat string map fill.ts actually draws onto the PDF: raw
- * answers plus synthetic derived keys (surname/givenNames/occupationLabel)
- * that FormFieldOverlay.source.questionId can reference alongside real
- * QuestionIds.
+ * answers plus synthetic derived keys (surname/givenNames/occupationLabel/
+ * checkboxes/etc.) that FormFieldOverlay.source.questionId can reference
+ * alongside real QuestionIds.
  */
 export function deriveOverlayValues(answers: Answers): Record<string, string> {
   const { surname, givenNames } = splitFullName(answers.fullLegalName as string | undefined);
+  const nationality = nationalityLabel(answers.nationality as string | undefined);
 
-  const values: Record<string, string> = { surname, givenNames };
-  values.occupationLabel = occupationLabel(answers.employmentType as string | undefined);
+  const values: Record<string, string> = {
+    surname,
+    givenNames,
+    nationalityLabel: nationality,
+    occupationLabel: occupationLabel(answers.employmentType as string | undefined),
+    // Field 26 "Member State of first entry" — always Portugal; this
+    // product only supports a Portugal visa, so there's no other answer
+    // it could be.
+    memberStateFirstEntry: "Portugal",
+    // Field 16 "Issued by (country)" for the travel document — the
+    // applicant's own nationality/issuing country, already collected.
+    passportIssuedByCountry: nationality,
+    // Field 12 checkbox "Ordinary passport" — not asked separately; the
+    // overwhelming majority of applicants have an ordinary (not
+    // diplomatic/service) passport, so this defaults to checked. Flagged
+    // as an assumption, not a verified fact per applicant.
+    ordinaryPassportCheckbox: boolFlag(true),
+    // Field 27 checkbox "Two entries (residency)" — always true. The
+    // qualifier gate (country-config/qualifier-gate.ts) guarantees every
+    // application that reaches this point is D8_RESIDENCE, never
+    // D8_TEMPORARY, so this isn't a guess.
+    entriesResidencyCheckbox: boolFlag(true),
+    // Field 20 checkboxes "Residence in a country other than the country
+    // of current nationality" — derived from the existing currentCountry
+    // answer (already collected; Q3 in Section A), not a new question.
+    residenceElsewhereYesCheckbox: boolFlag(
+      Boolean(answers.currentCountry) &&
+        String(answers.currentCountry).trim().length > 0 &&
+        String(answers.currentCountry).trim().toLowerCase() !== nationality.toLowerCase(),
+    ),
+  };
+  values.residenceElsewhereNoCheckbox = boolFlag(values.residenceElsewhereYesCheckbox !== "true");
 
   for (const [key, value] of Object.entries(answers)) {
     if (value !== undefined && value !== null) {

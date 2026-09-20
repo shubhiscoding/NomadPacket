@@ -220,5 +220,42 @@ export const portugalD8ResidenceQuestionnaire: QuestionnaireConfig = {
         },
       ],
     },
+    {
+      section: "E",
+      title: "A few extra details (optional)",
+      questions: [
+        {
+          id: "dateOfBirth",
+          section: "E",
+          label: "Date of birth",
+          helpText:
+            "Optional, but it lets us pre-fill one more field on the official visa form " +
+            "instead of leaving it for you to write in by hand.",
+          fieldType: "date",
+          required: false,
+        },
+        {
+          id: "passportIssueDate",
+          section: "E",
+          label: "Passport issue date",
+          fieldType: "date",
+          required: false,
+        },
+        {
+          id: "homeAddress",
+          section: "E",
+          label: "Your current home address",
+          fieldType: "text",
+          required: false,
+        },
+        {
+          id: "phoneNumber",
+          section: "E",
+          label: "Phone number",
+          fieldType: "text",
+          required: false,
+        },
+      ],
+    },
   ],
 };

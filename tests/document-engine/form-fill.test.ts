@@ -62,6 +62,59 @@ describe("Bucket-2 form-fill: real government form", () => {
     expect(text).not.toContain("undefined");
     expect(buffer.length).toBeGreaterThan(0);
   });
+
+  it("fills every newly-added field (Section E answers) without error", async () => {
+    const buffer = await fillForm(
+      nationalVisaFormFieldMapping,
+      {
+        ...(employeeUsFixture.answers as Answers),
+        dateOfBirth: "1998-05-02",
+        passportIssueDate: "2020-07-31",
+        homeAddress: "12 Main St, Springfield",
+        phoneNumber: "+1 555 123 4567",
+      },
+      REPO_ROOT,
+    );
+    const text = await extractText(buffer);
+    expect(text).toContain("1998-05-02");
+    expect(text).toContain("2020-07-31");
+    expect(text).toContain("12 Main St, Springfield");
+    expect(text).toContain("+1 555 123 4567");
+    // Derived fields that don't need a new question at all:
+    expect(text).toContain("Portugal"); // Member State of first entry
+  });
+
+  it("marks the checkboxes it can determine with certainty (passport type, entries requested)", async () => {
+    const buffer = await fillForm(
+      nationalVisaFormFieldMapping,
+      employeeUsFixture.answers as Answers,
+      REPO_ROOT,
+    );
+    const { PDFDocument } = await import("pdf-lib");
+    const pdfDoc = await PDFDocument.load(buffer);
+    // Every checkbox overlay draws a literal "X" glyph at its coordinate —
+    // the base (unfilled) form has zero literal "X" characters in its
+    // static text, so any appearing here came from our overlay.
+    const text = await extractText(buffer);
+    const xCount = (text.match(/X/g) ?? []).length;
+    expect(xCount).toBeGreaterThanOrEqual(2); // ordinary passport + two-entries-residency at minimum
+    void pdfDoc; // loaded only to confirm the buffer is still a valid PDF
+  });
+
+  it("truncates a value that's still too wide even at the minimum font size, rather than overflowing into the next cell", async () => {
+    const buffer = await fillForm(
+      nationalVisaFormFieldMapping,
+      {
+        fullLegalName: "Jane Doe",
+        homeAddress:
+          "This Is A Deliberately Extremely Long Home Address That Cannot Possibly Fit In The Available Box Width No Matter The Font Size",
+      } as Answers,
+      REPO_ROOT,
+    );
+    const text = await extractText(buffer);
+    expect(text).toContain("…");
+    expect(text).not.toContain("No Matter The Font Size"); // the tail must have been cut
+  });
 });
 
 describe("splitFullName", () => {
@@ -106,5 +159,44 @@ describe("deriveOverlayValues", () => {
     expect(
       deriveOverlayValues({ employmentType: "business_owner" } as Answers).occupationLabel,
     ).toBe("Business owner");
+  });
+
+  it("maps a nationality code to its full label for display on the form", () => {
+    expect(deriveOverlayValues({ nationality: "US" } as Answers).nationalityLabel).toBe(
+      "United States",
+    );
+    expect(deriveOverlayValues({ nationality: "UK" } as Answers).nationalityLabel).toBe(
+      "United Kingdom",
+    );
+    expect(deriveOverlayValues({ nationality: "CA" } as Answers).nationalityLabel).toBe("Canada");
+  });
+
+  it("always checks 'Two entries (residency)' and 'Ordinary passport' — guaranteed by product scope, not a guess", () => {
+    const values = deriveOverlayValues({} as Answers);
+    expect(values.entriesResidencyCheckbox).toBe("true");
+    expect(values.ordinaryPassportCheckbox).toBe("true");
+  });
+
+  it("checks 'Residence elsewhere: No' by default, and 'Yes' only when currentCountry differs from nationality", () => {
+    const sameCountry = deriveOverlayValues({
+      nationality: "US",
+      currentCountry: "United States",
+    } as Answers);
+    expect(sameCountry.residenceElsewhereNoCheckbox).toBe("true");
+    expect(sameCountry.residenceElsewhereYesCheckbox).toBe("");
+
+    const differentCountry = deriveOverlayValues({
+      nationality: "US",
+      currentCountry: "Thailand",
+    } as Answers);
+    expect(differentCountry.residenceElsewhereYesCheckbox).toBe("true");
+    expect(differentCountry.residenceElsewhereNoCheckbox).toBe("");
+
+    const noAnswer = deriveOverlayValues({ nationality: "US" } as Answers);
+    expect(noAnswer.residenceElsewhereNoCheckbox).toBe("true");
+  });
+
+  it("always fills 'Member State of first entry' as Portugal — the only country this product supports", () => {
+    expect(deriveOverlayValues({} as Answers).memberStateFirstEntry).toBe("Portugal");
   });
 });

@@ -34,7 +34,17 @@ export type QuestionId =
   // one of the spec's numbered questions; added because the letter
   // template needs free text no numbered question covers (see plan §4
   // assumption 3).
-  | "personalReason";
+  | "personalReason"
+  // Section E — optional extras, added specifically so more of the
+  // official visa form's fields can be pre-filled instead of left blank
+  // (fields 4, 14, 19 on the real form — see document-engine/form-fill/).
+  // All optional: skipping this section still produces a complete,
+  // submittable packet, just with a few more fields for the applicant to
+  // fill in by hand.
+  | "dateOfBirth"
+  | "passportIssueDate"
+  | "homeAddress"
+  | "phoneNumber";
 
 export type FieldType =
   | "text"
@@ -65,7 +75,7 @@ export type ValidationRule =
 
 export interface Question {
   id: QuestionId;
-  section: "A" | "B" | "C" | "D";
+  section: "A" | "B" | "C" | "D" | "E";
   label: string;
   helpText?: string;
   fieldType: FieldType;
@@ -76,7 +86,7 @@ export interface Question {
 }
 
 export interface QuestionGroup {
-  section: "A" | "B" | "C" | "D";
+  section: "A" | "B" | "C" | "D" | "E";
   title: string;
   questions: Question[];
 }

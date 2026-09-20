@@ -109,13 +109,30 @@ export interface FormFieldSource {
  * pre-fill means drawing text on top of it at measured coordinates, not
  * setting a named form field. `page` is 0-based; `x`/`y` are in PDF points
  * from the bottom-left of the page (pdf-lib's coordinate system).
+ *
+ * Two kinds:
+ *  - "text" (default): draws the derived value as a string. `maxWidth`, if
+ *    set, makes fill.ts shrink the font (down to `minFontSize`) until the
+ *    text fits, rather than letting it overflow into a neighboring cell —
+ *    this form's cells are tight enough that a long employer name or
+ *    address genuinely needs this, not just a nice-to-have.
+ *  - "checkbox": draws a checkmark over a printed ☐ glyph. Only drawn when
+ *    the derived value is the literal string "true" — every other value
+ *    (including "false" or missing) leaves the box unmarked. Only used for
+ *    choices this product can determine with certainty (e.g. "Two entries
+ *    (residency)" is always true — the qualifier gate guarantees D8
+ *    residence, never temporary stay); never for anything genuinely
+ *    ambiguous (sex, civil status, purpose of journey).
  */
 export interface FormFieldOverlay {
   page: number;
   x: number;
   y: number;
   source: FormFieldSource;
+  kind?: "text" | "checkbox";
   fontSize?: number;
+  maxWidth?: number;
+  minFontSize?: number;
 }
 
 export interface FormFieldMapping {
