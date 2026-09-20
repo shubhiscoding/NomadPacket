@@ -9,12 +9,22 @@ import type {
 import { computeRunningAverages, computeOverallAverage, meetsThreshold } from "@/lib/eligibility";
 import { convertToEur } from "@/lib/fx";
 
+/**
+ * Intl.NumberFormat's "en-US" currency style renders e.g. "€7,853.40" with
+ * no space between the symbol and the digits — technically correct, but
+ * visually cramped in the fonts used across these PDFs. Inserts a thin,
+ * non-breaking space between the leading symbol and the first digit
+ * (matching how currency amounts are commonly typeset) without touching
+ * the number formatting itself.
+ */
 function formatCurrency(amount: number, currency: string): string {
+  let formatted: string;
   try {
-    return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(amount);
+    formatted = new Intl.NumberFormat("en-US", { style: "currency", currency }).format(amount);
   } catch {
     return `${amount} ${currency}`;
   }
+  return formatted.replace(/^(\D+)(\d)/, "$1 $2");
 }
 
 function formatDate(value: string | number | boolean | undefined): string {
