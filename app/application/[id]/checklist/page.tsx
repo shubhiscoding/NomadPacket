@@ -13,6 +13,7 @@ import type {
 import { checkAccommodation, checkHealthInsurance, checkPassportValidity } from "@/lib/checklist";
 import type { Answers } from "@/questionnaire-engine/types";
 import { StatusPill } from "@/components/StatusPill";
+import { Disclaimer } from "@/components/Disclaimer";
 import { GenerateDocumentsButton } from "./generate-documents-button";
 import { DeliveryActions } from "./delivery-actions";
 import type { DocumentType } from "@prisma/client";
@@ -207,14 +208,7 @@ export default async function ChecklistPage({
         </div>
       </section>
 
-      <p className="mt-10 text-xs leading-relaxed text-stone-400">
-        This tool assembles documents based on publicly available Portuguese consulate and AIMA
-        requirements. It does not provide legal advice and cannot guarantee visa approval — no
-        service can. Requirements vary by consulate and may change; always confirm current
-        requirements with your nearest Portuguese consulate or an immigration lawyer, particularly
-        if your situation involves a criminal record, prior visa refusals, or unusual income
-        sources.
-      </p>
+      <Disclaimer />
     </main>
   );
 }

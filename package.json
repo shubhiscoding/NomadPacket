@@ -23,6 +23,7 @@
     "@dodopayments/nextjs": "^0.3.9",
     "@prisma/client": "^6.19.3",
     "@react-pdf/renderer": "^4.9.0",
+    "@vercel/analytics": "^2.0.1",
     "dodopayments": "^2.50.0",
     "jszip": "^3.10.2",
     "next": "16.3.5",
