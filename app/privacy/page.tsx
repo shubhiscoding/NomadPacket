@@ -157,8 +157,8 @@ export default function PrivacyPage() {
         <h2 className="text-xl font-medium text-stone-900">8. Contact</h2>
         <p className="mt-2 text-sm leading-relaxed text-stone-600">
           Questions about this policy, or requests regarding your data, can be sent to{" "}
-          <a href="mailto:hello@nomadpacket.com" className="text-teal-800 underline">
-            hello@nomadpacket.com
+          <a href="mailto:hello@nomadpacket.app" className="text-teal-800 underline">
+            hello@nomadpacket.app
           </a>
           .
         </p>
