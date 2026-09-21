@@ -15,9 +15,11 @@ import { checkAccommodation, checkHealthInsurance, checkPassportValidity } from 
 import type { Answers } from "@/questionnaire-engine/types";
 import { StatusPill } from "@/components/StatusPill";
 import { Disclaimer } from "@/components/Disclaimer";
-import { GenerateDocumentsButton } from "./generate-documents-button";
 import { DeliveryActions } from "./delivery-actions";
+import { DocumentPreviewButton } from "./document-preview-button";
 import { hasEntitlement } from "@/entitlement/guard";
+import { generateApplicationDocuments } from "@/document-engine/generate-packet";
+import { getDocumentPreviewData } from "@/document-engine/preview-data";
 import type { DocumentType } from "@prisma/client";
 
 const BUCKET_1_2_LABELS: Record<DocumentType, string> = {
@@ -44,13 +46,31 @@ export default async function ChecklistPage({
   const config = getQuestionnaireConfig(application.country, application.visaType);
   const questionnaireComplete = config ? isQuestionnaireComplete(config, answers) : false;
 
-  const [generatedDocuments, isPaid] = await Promise.all([
+  const [initialGeneratedDocuments, isPaid] = await Promise.all([
     prisma.generatedDocument.findMany({
       where: { applicationId: id },
       orderBy: { generatedAt: "desc" },
     }),
     hasEntitlement(id),
   ]);
+  let generatedDocuments = initialGeneratedDocuments;
+
+  // Documents regenerate automatically instead of needing a manual
+  // button: missing entirely (first completion, or a PAID application
+  // whose files the 30-day retention cron already deleted — regenerating
+  // is free forever once paid, see entitlement/guard.ts), or stale
+  // relative to an answer edited since the last generation. Answers are
+  // only editable pre-payment (see the card below), so staleness can
+  // only happen in the unpaid state.
+  const isStale = generatedDocuments.some((doc) => doc.generatedAt < application.updatedAt);
+  if (questionnaireComplete && (generatedDocuments.length === 0 || (!isPaid && isStale))) {
+    await generateApplicationDocuments(id);
+    generatedDocuments = await prisma.generatedDocument.findMany({
+      where: { applicationId: id },
+      orderBy: { generatedAt: "desc" },
+    });
+  }
+
   const generatedByType = new Map(generatedDocuments.map((d) => [d.type, d]));
 
   // Only the branch relevant to this employmentType is expected — the
@@ -79,6 +99,8 @@ export default async function ChecklistPage({
       key: CountryConfigKey.FormFillNationalVisaFormMapping,
     }),
   ]);
+
+  const previewData = questionnaireComplete ? await getDocumentPreviewData(id) : {};
 
   const passportCheck = checkPassportValidity({
     passportExpiry: answers.passportExpiry as string | undefined,
@@ -110,7 +132,7 @@ export default async function ChecklistPage({
         <p className="text-sm font-medium text-stone-500">NomadPacket</p>
         <div className="flex shrink-0 items-center gap-2">
           <Link
-            href="/application/history"
+            href={`/application/history?from=${id}`}
             className="inline-flex items-center rounded-full border border-stone-200 px-3 py-1 text-xs font-medium text-stone-600 transition-colors hover:border-stone-300 hover:bg-stone-50"
           >
             My documents
@@ -156,10 +178,14 @@ export default async function ChecklistPage({
       </div>
 
       {/* The one thing to do next — consolidates what used to be a
-          separate "finish questionnaire" banner, GenerateDocumentsButton,
-          and DeliveryActions each rendered inline further down the page.
-          Promoted here since it's the single most important action on
-          the page at any given moment, per this session's UX review. */}
+          separate "finish questionnaire" banner, a manual generate/
+          regenerate button, and DeliveryActions each rendered inline
+          further down the page. Documents themselves now always
+          regenerate automatically (see the staleness check above) rather
+          than needing a button click at all — editing an answer and
+          coming back here is enough. Editing is only offered while
+          unpaid; once paid, the answers (and the documents built from
+          them) are locked in, matching what was actually purchased. */}
       <div className="mt-6 rounded-lg border border-stone-200 bg-stone-50 px-5 py-4">
         {!questionnaireComplete ? (
           <>
@@ -174,30 +200,21 @@ export default async function ChecklistPage({
               Continue questionnaire
             </Link>
           </>
-        ) : generatedDocuments.length === 0 ? (
+        ) : !isPaid ? (
           <>
-            <p className="text-sm font-medium text-stone-900">Ready to generate your documents</p>
+            <p className="text-sm font-medium text-stone-900">Your documents are ready</p>
             <p className="mt-1 text-sm text-stone-600">
-              Every document below will be free to preview before you pay.
+              Review the details used in each one below, then pay once to unlock the download.
+              Edit your answers any time before paying — documents update automatically.
             </p>
-            <div className="mt-3 flex items-center gap-3">
-              <GenerateDocumentsButton applicationId={id} />
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <DeliveryActions applicationId={id} isPaid={false} />
               <Link
                 href={`/application/${id}/questionnaire`}
                 className="text-sm font-medium text-stone-600 hover:underline"
               >
                 Edit answers
               </Link>
-            </div>
-          </>
-        ) : !isPaid ? (
-          <>
-            <p className="text-sm font-medium text-stone-900">Your documents are ready</p>
-            <p className="mt-1 text-sm text-stone-600">
-              Preview them below, then pay once to unlock the download.
-            </p>
-            <div className="mt-3">
-              <DeliveryActions applicationId={id} isPaid={false} />
             </div>
           </>
         ) : (
@@ -240,15 +257,11 @@ export default async function ChecklistPage({
                   )}
                 </div>
                 <div className="flex items-center gap-3">
-                  {doc && (
-                    <a
-                      href={`/api/applications/${id}/documents/${doc.id}/preview`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-sm font-medium text-teal-800 hover:underline"
-                    >
-                      Preview
-                    </a>
+                  {previewData[type] && (
+                    <DocumentPreviewButton
+                      title={previewData[type]!.title}
+                      fields={previewData[type]!.fields}
+                    />
                   )}
                   <StatusPill status={doc ? "done" : "action_needed"} />
                 </div>

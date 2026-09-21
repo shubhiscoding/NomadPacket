@@ -23,7 +23,7 @@ export function DeliveryActions({
           Pay to unlock download
         </a>
         <p className="text-xs text-stone-500">
-          Every document above can be previewed in full before you pay.
+          Review the details used in each document above before you pay.
         </p>
       </div>
     );

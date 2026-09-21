@@ -13,7 +13,11 @@ import { StatusPill } from "@/components/StatusPill";
  * Abandoned/in-progress applications intentionally never appear here —
  * this is a receipt list, not a drafts list.
  */
-export default async function DocumentHistoryPage() {
+export default async function DocumentHistoryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ from?: string }>;
+}) {
   const user = await getCurrentUser();
   if (!user) redirect("/signin");
 
@@ -29,10 +33,21 @@ export default async function DocumentHistoryPage() {
     },
   });
 
+  // The checklist page links here with ?from=<applicationId> so "Back"
+  // returns to that specific checklist rather than /application, which
+  // would resume straight into the questionnaire for an in-progress
+  // application — not "back" at all. Falls back to /application when
+  // arriving here without that context (or for someone else's id).
+  const { from } = await searchParams;
+  const backHref =
+    from && (await prisma.application.findFirst({ where: { id: from, userId: user.id } }))
+      ? `/application/${from}/checklist`
+      : "/application";
+
   return (
     <main className="mx-auto max-w-2xl px-6 py-16">
       <Link
-        href="/application"
+        href={backHref}
         className="mb-6 inline-flex items-center gap-1 text-sm font-medium text-stone-500 hover:text-stone-700"
       >
         ← Back
