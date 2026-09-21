@@ -5,7 +5,7 @@ import { getEnv } from "@/lib/env";
 /**
  * Issues a fresh magic-link token for `email` and emails it via Resend.
  * NEXT_PUBLIC_SITE_URL is the only place the site's canonical origin is
- * read from — never hardcode nomadpacket.com.
+ * read from — never hardcode nomadpacket.app.
  */
 export async function issueAndSendMagicLink(email: string): Promise<void> {
   const { rawToken } = await createMagicLinkToken(email);

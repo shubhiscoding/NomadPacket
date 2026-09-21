@@ -1,6 +1,6 @@
 # AGENTS.md
 
-**Project: NomadPacket** (nomadpacket.com)
+**Project: NomadPacket** (nomadpacket.app)
 
 This file is the standing contract for any AI agent (or human) working on this codebase. Read it in full before writing code. When a request conflicts with a rule here, follow this file and flag the conflict instead of silently picking one.
 
@@ -64,7 +64,7 @@ Everything below exists to make **"add country #2"** a data change, not a rewrit
 
 - **Qualifier gate:** the very first screen anyone sees, before auth. It asks only "which country + which visa type," checks that against which paths are actually built (config-driven, not hardcoded), and either routes into the real flow or shows a "not supported yet" screen with an email-capture waitlist. No `applications` record is created for an unsupported selection — this is a marketing/routing concern, not part of the paid product.
 
-- **Email sending domain:** transactional email should be sent from an @nomadpacket.com address once DNS is configured (e.g. `hello@nomadpacket.com`), with "NomadPacket" as the display name. Deliverability and a trustworthy sender identity matter more than usual here, since these emails carry sensitive document links.
+- **Email sending domain:** transactional email should be sent from an @nomadpacket.app address once DNS is configured (e.g. `hello@nomadpacket.app`), with "NomadPacket" as the display name. Deliverability and a trustworthy sender identity matter more than usual here, since these emails carry sensitive document links.
 - **Questionnaire engine:** driven entirely by a per-country-and-visa-type config object (question list, branching logic, validation rules). Adding or changing a question is a config edit. If you find yourself writing country-specific `if` branches inside a shared component, stop — that logic belongs in config.
 - **Document engine:** takes `(answers, country_config) → documents`. Letter text templates live in their own files (see 3.4), never inline in component/route code. Official-form pre-fill uses field-level coordinate/name mapping stored per country, since every government PDF is laid out differently.
 - **Country config is versioned by effective date.** Legal thresholds (like the income minimum, pegged to Portugal's minimum wage) change annually. Store them as `{value, effective_from, effective_to, source_url}` records, not constants, so old applications remain reproducible and new ones automatically pick up current figures.

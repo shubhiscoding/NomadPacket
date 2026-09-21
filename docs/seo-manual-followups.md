@@ -25,7 +25,7 @@ no agent/AI account can do these on your behalf.
    verification > HTML tag), then set `GOOGLE_SITE_VERIFICATION` in
    production env vars to the value Search Console gives you (see
    `.env.example`). Submit the sitemap URL from `app/sitemap.ts`
-   (`https://nomadpacket.com/sitemap.xml` once deployed) inside Search
+   (`https://nomadpacket.app/sitemap.xml` once deployed) inside Search
    Console — the `sitemap` field in `app/robots.ts` tells crawlers where
    it is, but Search Console submission is still worth doing directly.
 2. **Vercel Analytics** is already wired (`app/layout.tsx`) — it activates
