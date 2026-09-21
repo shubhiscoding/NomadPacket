@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { deleteDocument } from "@/lib/storage";
 import { getEnv } from "@/lib/env";
-
-const RETENTION_DAYS = 30;
+import { RETENTION_DAYS } from "@/lib/retention";
 
 /**
  * Daily retention sweep (scheduled via vercel.json's `crons` entry) —
