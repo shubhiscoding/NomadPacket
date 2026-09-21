@@ -38,6 +38,14 @@ export const portugalD8ResidenceQuestionnaire: QuestionnaireConfig = {
           ],
         },
         {
+          id: "currentCity",
+          section: "A",
+          label: "Current city",
+          helpText: "Used in your motivation letter (\"currently residing in [city], [country]\").",
+          fieldType: "text",
+          required: false,
+        },
+        {
           id: "currentCountry",
           section: "A",
           label: "Current country of residence (if different from your nationality)",
@@ -78,6 +86,16 @@ export const portugalD8ResidenceQuestionnaire: QuestionnaireConfig = {
             { value: "freelancer", label: "Freelancer / contractor" },
             { value: "business_owner", label: "Business owner" },
           ],
+        },
+        {
+          id: "jobTitle",
+          section: "B",
+          label: "Job title / role",
+          helpText:
+            "Optional — used in your motivation letter and employer confirmation letter. " +
+            "Skip it and we'll use a generic description instead.",
+          fieldType: "text",
+          required: false,
         },
         {
           id: "employerOrClientNames",

@@ -69,6 +69,47 @@ describe("mapAnswersToMotivationLetterData", () => {
     );
     expect(withoutAccommodation.accommodationClause).toBe("");
   });
+
+  // Regression test: currentCity used to be read from answers.currentCountry
+  // (there was no currentCity question), so residingLocation could show a
+  // country name — or whatever unrelated value ended up in that answer —
+  // where a city belonged ("currently residing in USD, United States" was
+  // an observed real output).
+  it("combines currentCity and currentCountry into one location, not a duplicated or unrelated value", () => {
+    const data = mapAnswersToMotivationLetterData(
+      { ...(employeeUsFixture.answers as Answers), currentCity: "Austin", currentCountry: "United States" },
+      { homeCountryLabel: "United States" },
+    );
+    expect(data.residingLocation).toBe("Austin, United States");
+  });
+
+  it("omits the city cleanly (no placeholder, no duplication) when currentCity is blank", () => {
+    const answersWithoutCity: Answers = { ...(employeeUsFixture.answers as Answers) };
+    delete answersWithoutCity.currentCity;
+    const data = mapAnswersToMotivationLetterData(answersWithoutCity, {
+      homeCountryLabel: "United States",
+    });
+    expect(data.residingLocation).toBe("United States");
+    expect(data.residingLocation).not.toContain("United States, United States");
+  });
+
+  // Regression test: jobTitle used to resolve differently per document —
+  // this one showed a generic "employee" derived from employmentType,
+  // ignoring any actual job-title answer entirely.
+  it("uses the applicant's actual jobTitle answer when provided, not a generic employmentType-derived label", () => {
+    const data = mapAnswersToMotivationLetterData(
+      { ...(employeeUsFixture.answers as Answers), jobTitle: "Senior Product Designer" },
+      { homeCountryLabel: "United States" },
+    );
+    expect(data.jobTitleOrRole).toBe("Senior Product Designer");
+  });
+
+  it("falls back to a generic role description when jobTitle is skipped", () => {
+    const data = mapAnswersToMotivationLetterData(employeeUsFixture.answers as Answers, {
+      homeCountryLabel: "United States",
+    });
+    expect(data.jobTitleOrRole).toBe("employee");
+  });
 });
 
 describe("mapAnswersToEmployerConfirmationData", () => {
@@ -77,6 +118,28 @@ describe("mapAnswersToEmployerConfirmationData", () => {
     expect(data.pronounSubject).toBe("They");
     expect(data.companyName).toBe(employeeUsFixture.answers.employerOrClientNames);
     expect(data.amountAndCurrency).toContain("5,000");
+  });
+
+  // Regression test: the template hardcoded "is" everywhere, producing
+  // "They is a full-time remote employee" once "They" became the default
+  // pronoun — a real subject-verb agreement bug, not a cosmetic one.
+  it("pairs the 'they' pronoun with the plural verb 'are', not 'is'", () => {
+    const data = mapAnswersToEmployerConfirmationData(employeeUsFixture.answers as Answers);
+    expect(data.pronounSubject).toBe("They");
+    expect(data.pronounVerb).toBe("are");
+  });
+
+  it("uses the applicant's actual jobTitle answer when provided, matching the motivation letter's resolution", () => {
+    const data = mapAnswersToEmployerConfirmationData({
+      ...(employeeUsFixture.answers as Answers),
+      jobTitle: "Senior Product Designer",
+    });
+    expect(data.jobTitle).toBe("Senior Product Designer");
+  });
+
+  it("falls back to a literal bracket placeholder (for HR to fill in) only when jobTitle is truly missing", () => {
+    const data = mapAnswersToEmployerConfirmationData(employeeUsFixture.answers as Answers);
+    expect(data.jobTitle).toBe("[job title]");
   });
 });
 
@@ -124,5 +187,29 @@ describe("mapAnswersToIncomeSummarySheetData", () => {
     };
     const data = await mapAnswersToIncomeSummarySheetData(lowIncomeAnswers, { thresholdEur: 3680 });
     expect(data.thresholdStatus).toBe("not met");
+  });
+
+  // Regression test: this document's whole job is a trustworthy EUR
+  // comparison — it was silently converting USD to EUR with no visible
+  // rate or methodology anywhere on the page, which undermines exactly
+  // the thing the document exists to prove.
+  it("states the exact conversion rate and methodology used, for a non-EUR applicant", async () => {
+    const data = await mapAnswersToIncomeSummarySheetData(employeeUsFixture.answers as Answers, {
+      thresholdEur: 3680,
+    });
+    expect(data.conversionNote).toContain("USD");
+    expect(data.conversionNote).toContain("EUR");
+    expect(data.conversionNote).toContain(FAKE_USD_TO_EUR_RATE.toString().slice(0, 4));
+    expect(data.conversionNote.toLowerCase()).toContain("european central bank");
+  });
+
+  it("still states the methodology (as 'no conversion applied') for a EUR-reporting applicant, never silently skipped", async () => {
+    const eurAnswers: Answers = {
+      ...(employeeUsFixture.answers as Answers),
+      incomeCurrency: "EUR",
+    };
+    const data = await mapAnswersToIncomeSummarySheetData(eurAnswers, { thresholdEur: 3680 });
+    expect(data.conversionNote.length).toBeGreaterThan(0);
+    expect(data.conversionNote.toLowerCase()).toContain("no currency conversion applied");
   });
 });

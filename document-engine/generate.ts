@@ -7,15 +7,15 @@ import type {
   IncomeSummarySheetData,
 } from "./letters/templates/income-summary-sheet.template";
 import { computeRunningAverages, computeOverallAverage, meetsThreshold } from "@/lib/eligibility";
-import { convertToEur } from "@/lib/fx";
+import { getExchangeRateToEur } from "@/lib/fx";
 
 /**
  * Intl.NumberFormat's "en-US" currency style renders e.g. "€7,853.40" with
  * no space between the symbol and the digits — technically correct, but
- * visually cramped in the fonts used across these PDFs. Inserts a thin,
- * non-breaking space between the leading symbol and the first digit
- * (matching how currency amounts are commonly typeset) without touching
- * the number formatting itself.
+ * visually cramped in the fonts used across these PDFs. Inserts a plain
+ * space between the leading symbol and the first digit (matching how
+ * currency amounts are commonly typeset) without touching the number
+ * formatting itself.
  */
 function formatCurrency(amount: number, currency: string): string {
   let formatted: string;
@@ -24,7 +24,7 @@ function formatCurrency(amount: number, currency: string): string {
   } catch {
     return `${amount} ${currency}`;
   }
-  return formatted.replace(/^(\D+)(\d)/, "$1 $2");
+  return formatted.replace(/^(\D+)(\d)/, "$1 $2");
 }
 
 function formatDate(value: string | number | boolean | undefined): string {
@@ -35,7 +35,28 @@ function formatDate(value: string | number | boolean | undefined): string {
 }
 
 function str(value: string | number | boolean | undefined, fallback = ""): string {
-  return value === undefined || value === null ? fallback : String(value);
+  return value === undefined || value === null || value === "" ? fallback : String(value);
+}
+
+const GENERIC_ROLE_BY_EMPLOYMENT_TYPE: Record<string, string> = {
+  employee: "employee",
+  freelancer: "an independent freelancer",
+  business_owner: "a business owner",
+};
+
+/**
+ * Prefers the applicant's own answer for their job title/role; falls back
+ * to a generic-but-accurate description derived from employmentType only
+ * when they skipped the (optional) jobTitle question. Shared by every
+ * mapper below so job title resolves the SAME way across all four
+ * documents — the earlier bug was each mapper doing this differently
+ * (one used employmentType as a stand-in, another left a literal
+ * "[job title]" bracket even when a real answer existed).
+ */
+function resolveJobTitle(answers: Answers): string {
+  const provided = str(answers.jobTitle);
+  if (provided) return provided;
+  return GENERIC_ROLE_BY_EMPLOYMENT_TYPE[str(answers.employmentType)] ?? "professional";
 }
 
 /**
@@ -65,17 +86,25 @@ export function mapAnswersToMotivationLetterData(
     str(answers.incomeCurrency, "USD"),
   );
 
+  // currentCity was previously read from answers.currentCountry (there was
+  // no currentCity question at all) — that's a real field-mapping bug,
+  // not just a naming slip: it meant the template's "{{currentCity}},
+  // {{currentCountry}}" clause always rendered a country name (or
+  // whatever else ended up in that answer) where a city belonged. Now
+  // reads the actual currentCity answer (added specifically for this),
+  // and cleanly omits the city clause entirely when it's blank rather
+  // than showing a placeholder or duplicating the country.
+  const currentCity = str(answers.currentCity);
+  const currentCountryAnswer = str(answers.currentCountry, opts.homeCountryLabel);
+  const residingLocation = currentCity ? `${currentCity}, ${currentCountryAnswer}` : currentCountryAnswer;
+
   return {
     homeCountry: opts.homeCountryLabel,
     fullName: str(answers.fullLegalName, "[full name not provided]"),
     nationality: opts.homeCountryLabel,
-    currentCity: str(answers.currentCountry, "[current location not provided]"),
-    currentCountry: opts.homeCountryLabel,
-    // v1 only builds the residence-visa path (AGENTS.md scope) — the
-    // qualifier gate never lets D8_TEMPORARY reach this far, so this is
-    // always "Residence".
+    residingLocation,
     visaFlavorLabel: "Residence",
-    jobTitleOrRole: employmentType === "employee" ? "employee" : str(employmentType, "professional"),
+    jobTitleOrRole: resolveJobTitle(answers),
     employmentDescriptor,
     intendedMoveDate: formatDate(answers.intendedMoveDate),
     accommodationClause,
@@ -100,12 +129,21 @@ export function mapAnswersToEmployerConfirmationData(answers: Answers): Employer
   return {
     companyName: str(answers.employerOrClientNames, "[employer name not provided]"),
     employeeFullName: str(answers.fullLegalName, "[full name not provided]"),
-    jobTitle: "[job title]",
+    // Previously always "[job title]", even when the applicant HAD given
+    // a real answer elsewhere — silently inconsistent with the
+    // motivation letter's own resolution. Now shares resolveJobTitle()
+    // with every other document; only falls back to the literal bracket
+    // (for HR to fill in) when there's truly nothing to work with.
+    jobTitle: str(answers.jobTitle, "[job title]"),
     startDate: "[start date]",
     remoteDescriptor: "remote",
     pronounSubject: "They",
-    pronounObject: "them",
     pronounPossessive: "their",
+    // "is" for he/she, "are" for they — always "are" today since gender
+    // isn't collected and "they" is the only pronoun set ever used, but
+    // kept as its own field (not hardcoded in the template) so the
+    // grammar stays correct if a gendered pronoun set is ever wired in.
+    pronounVerb: "are",
     amountAndCurrency: formatCurrency(
       Number(answers.monthlyIncome ?? 0),
       str(answers.incomeCurrency, "USD"),
@@ -153,9 +191,10 @@ export function mapAnswersToFreelancerNarrativeData(
  * their own currency — comparing face values directly would silently
  * misreport eligibility for every non-EUR applicant, so the reported
  * amount is converted to EUR (via lib/fx.ts, live ECB-backed rates) before
- * comparing. This is async as a result. Threshold comparison itself is
- * computed here from a server-resolved config value, never trusted from
- * the client.
+ * comparing. This is the ONE document whose entire job is a trustworthy
+ * EUR-denominated number, so the conversion methodology is stated
+ * explicitly on the document itself (conversionNote) — never a silent
+ * step, even for a EUR-reporting applicant.
  */
 export async function mapAnswersToIncomeSummarySheetData(
   answers: Answers,
@@ -165,7 +204,8 @@ export async function mapAnswersToIncomeSummarySheetData(
   const monthlyAmount = Number(answers.monthlyIncome ?? 0);
   const currency = str(answers.incomeCurrency, "USD");
   const source = str(answers.employerOrClientNames, "Reported income");
-  const monthlyAmountEur = await convertToEur(monthlyAmount, currency);
+  const exchangeRate = await getExchangeRateToEur(currency);
+  const monthlyAmountEur = monthlyAmount * exchangeRate;
 
   const entries = Array.from({ length: monthsToShow }, (_, i) => ({
     month: `Month ${i + 1}`,
@@ -185,10 +225,18 @@ export async function mapAnswersToIncomeSummarySheetData(
   const average = computeOverallAverage(entries);
   const status = meetsThreshold(average, opts.thresholdEur) ? "met" : "not met";
 
+  const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  const conversionNote =
+    currency === "EUR"
+      ? "Reported in EUR — no currency conversion applied."
+      : `Converted from ${currency} to EUR at 1 ${currency} = ${exchangeRate.toFixed(4)} EUR ` +
+        `(European Central Bank reference rate, retrieved ${today}).`;
+
   return {
     rows,
     averageFormatted: formatCurrency(average, "EUR"),
     thresholdFormatted: formatCurrency(opts.thresholdEur, "EUR"),
     thresholdStatus: status,
+    conversionNote,
   };
 }
