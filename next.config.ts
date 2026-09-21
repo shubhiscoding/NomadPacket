@@ -7,6 +7,16 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
   },
+  // fill.ts reads the form-fill PDF asset via a runtime-constructed path
+  // (path.join(process.cwd(), mapping.formAssetPath)) rather than a
+  // statically analyzable literal, so Vercel's build-time file tracer
+  // can't detect the dependency and omits the asset from the deployed
+  // function — causing an ENOENT in production despite the file existing
+  // in the repo. Force-include it explicitly for the route that reaches
+  // fillForm (app/api/applications/[id]/documents/route.ts).
+  outputFileTracingIncludes: {
+    "/api/applications/[id]/documents": ["./document-engine/form-fill/assets/**"],
+  },
 };
 
 export default nextConfig;
