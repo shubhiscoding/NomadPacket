@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Fraunces } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { getEnv } from "@/lib/env";
 import "./globals.css";
 
@@ -57,6 +58,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col bg-white text-stone-900">
         <Header />
         {children}
+        <Footer />
         {/* seo.md §6: pageview + conversion-funnel tracking. Vercel
             Analytics tracks navigation only — never document content,
             per AGENTS.md §4's "no third-party analytics touching
