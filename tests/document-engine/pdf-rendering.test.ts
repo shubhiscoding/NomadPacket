@@ -56,6 +56,22 @@ describe("rendered PDF content matches fixture data (US employee, residence)", (
     expect(text.toLowerCase()).not.toContain("nomadpacket");
   });
 
+  // Regression test, end-to-end: the rendered letter previously showed
+  // "currently residing in USD, United States" — a currency code leaked
+  // into the city field because currentCity was read from
+  // answers.currentCountry (no currentCity question existed at all).
+  it("motivation letter never leaks a currency code into the residence location", async () => {
+    const data = mapAnswersToMotivationLetterData(
+      { ...answers, currentCity: "Austin" },
+      { homeCountryLabel: "United States" },
+    );
+    const buffer = await renderMotivationLetterPdf(data);
+    const text = await extractText(buffer);
+
+    expect(text).toContain("Austin, United States");
+    expect(text).not.toMatch(/residing in (USD|GBP|CAD|EUR)/);
+  });
+
   it("employer confirmation letter includes the employer and salary, and uses neutral pronouns", async () => {
     const data = mapAnswersToEmployerConfirmationData(answers);
     const buffer = await renderEmployerConfirmationPdf(data);
@@ -65,6 +81,20 @@ describe("rendered PDF content matches fixture data (US employee, residence)", (
     expect(text).toContain("Jane Doe");
     expect(text).toContain("They");
     expect(text.toLowerCase()).not.toContain("nomadpacket");
+  });
+
+  // Regression test, end-to-end (not just on the mapper's output): the
+  // rendered letter previously read "They is a full-time remote employee"
+  // and "confirms that them is authorized" — wrong subject-verb agreement
+  // AND the wrong pronoun case (object "them" used as a sentence subject).
+  it("employer confirmation letter never contains 'They is' or 'them is' — grammatically correct pronoun agreement", async () => {
+    const data = mapAnswersToEmployerConfirmationData(answers);
+    const buffer = await renderEmployerConfirmationPdf(data);
+    const text = await extractText(buffer);
+
+    expect(text).not.toContain("They is");
+    expect(text).not.toContain("them is");
+    expect(text).toContain("They are");
   });
 
   it("income summary sheet includes the threshold comparison", async () => {

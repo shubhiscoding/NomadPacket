@@ -10,11 +10,13 @@ export type QuestionId =
   // Section A — Basics
   | "fullLegalName"
   | "nationality"
+  | "currentCity"
   | "currentCountry"
   | "passportNumber"
   | "passportExpiry"
   // Section B — Work & income
   | "employmentType"
+  | "jobTitle"
   | "employerOrClientNames"
   | "monthlyIncome"
   | "incomeCurrency"

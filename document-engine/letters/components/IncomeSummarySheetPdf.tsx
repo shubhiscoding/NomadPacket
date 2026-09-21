@@ -57,6 +57,17 @@ export function IncomeSummarySheetPdf({ data }: { data: IncomeSummarySheetData }
           Average vs. {data.thresholdFormatted} monthly threshold:{" "}
           {data.thresholdStatus === "met" ? "Met" : "Not met"}
         </Text>
+
+        {/* This document's whole job is a trustworthy EUR comparison —
+            silently converting currency without showing the rate would
+            undermine that. Shown even when it's just "1 EUR = 1 EUR" for
+            a EUR-reporting applicant, so the methodology is never a
+            silent, invisible step for ANY applicant. */}
+        {data.conversionNote && (
+          <Text style={{ marginTop: 6, fontSize: 8.5, color: "#57534e" }}>
+            {data.conversionNote}
+          </Text>
+        )}
       </Page>
     </Document>
   );
