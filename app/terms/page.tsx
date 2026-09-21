@@ -61,8 +61,9 @@ export default function TermsPage() {
         <p className="mt-2 text-sm leading-relaxed text-stone-600">
           NomadPacket charges a one-time fee to unlock download of your complete document
           packet. Payments are processed by Dodo Payments; NomadPacket does not store your
-          full card or payment details. Every generated document can be previewed in full
-          before you pay, so you can confirm it&apos;s what you need before purchasing.
+          full card or payment details. Before you pay, you can review the details that will
+          appear in each generated document, so you can confirm they&apos;re correct before
+          purchasing.
         </p>
         <p className="mt-3 text-sm leading-relaxed text-stone-600">
           Because documents are generated and made available for download immediately upon
