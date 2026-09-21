@@ -20,7 +20,7 @@ import {
   renderFreelancerNarrativePdf,
   renderIncomeSummarySheetPdf,
 } from "./letters/render-to-pdf";
-import { saveDocument } from "@/lib/storage";
+import { saveDocument, deleteDocument } from "@/lib/storage";
 import type { DocumentType } from "@prisma/client";
 
 /**
@@ -110,6 +110,14 @@ export async function generateApplicationDocuments(applicationId: string): Promi
       buffer: fillForm(formMappingResult.value, answers, process.cwd()),
     });
   }
+
+  // Regenerating overwrites these types' rows below — delete the old
+  // stored files/blobs first so they don't leak (orphaned storage with
+  // nothing pointing at them, since the DB row that named them is gone).
+  const staleDocs = await prisma.generatedDocument.findMany({
+    where: { applicationId, type: { in: documentsToGenerate.map((d) => d.type) } },
+  });
+  await Promise.all(staleDocs.map((doc) => deleteDocument(doc.fileUrl)));
 
   await prisma.generatedDocument.deleteMany({
     where: { applicationId, type: { in: documentsToGenerate.map((d) => d.type) } },

@@ -38,6 +38,16 @@ const envSchema = z.object({
   DODO_PAYMENTS_ENVIRONMENT: z.enum(["test_mode", "live_mode"]).default("test_mode"),
   DODO_PRODUCT_PRICE_CENTS: z.coerce.number().int().nonnegative().default(0),
   DODO_PRODUCT_CURRENCY: z.string().default("USD"),
+
+  // Vercel injects this automatically once a Blob store is attached to the
+  // project. Left optional/undefined in local dev and tests, where
+  // lib/storage.ts falls back to the local filesystem instead.
+  BLOB_READ_WRITE_TOKEN: z.string().min(1).optional(),
+
+  // Secures app/api/cron/delete-expired-documents. Optional in the schema
+  // so local dev/tests don't need it, but that route fails closed (401s
+  // everything) whenever it's unset — never treats "unset" as "unlocked".
+  CRON_SECRET: z.string().min(16).optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
