@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { getVisibleGroups, validateAnswers } from "../engine";
 import type { Answers, QuestionnaireConfig, ValidationError } from "../types";
 import { Field } from "./fields/Field";
@@ -85,6 +86,13 @@ export function QuestionnaireRunner({
 
   return (
     <div className="mx-auto max-w-lg px-6 py-16">
+      <Link
+        href={`/application/${applicationId}/checklist`}
+        className="mb-6 inline-flex items-center gap-1 text-sm font-medium text-stone-500 hover:text-stone-700"
+      >
+        ← Back to checklist
+      </Link>
+
       <ProgressIndicator
         currentStep={groupIndex + 1}
         totalSteps={visibleGroups.length}

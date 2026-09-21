@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { signIn } from "@/auth/auth";
+import { getCurrentUser } from "@/auth/current-user";
 import { GATE_CONTEXT_COOKIE_NAME, verifyGateContextCookieValue } from "@/lib/gate-context";
 
 /**
@@ -12,6 +13,15 @@ import { GATE_CONTEXT_COOKIE_NAME, verifyGateContextCookieValue } from "@/lib/ga
  * dormant instead of deleting or overwriting it.
  */
 export default async function SignInPage() {
+  // /api/qualifier always redirects here on a supported selection,
+  // whether or not the visitor already has a session — an already
+  // signed-in user re-running the /start flow shouldn't see a login
+  // screen again just because they went through the gate a second time.
+  const existingUser = await getCurrentUser();
+  if (existingUser) {
+    redirect("/application");
+  }
+
   const cookieStore = await cookies();
   const gateContext = verifyGateContextCookieValue(
     cookieStore.get(GATE_CONTEXT_COOKIE_NAME)?.value,

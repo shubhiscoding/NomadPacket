@@ -36,6 +36,10 @@ const envSchema = z.object({
   DODO_PAYMENTS_API_KEY: z.string().min(1),
   DODO_PAYMENTS_WEBHOOK_KEY: z.string().min(1),
   DODO_PAYMENTS_ENVIRONMENT: z.enum(["test_mode", "live_mode"]).default("test_mode"),
+  // The product created in the Dodo dashboard for the one-time packet
+  // purchase — its price/currency are configured there, not passed at
+  // checkout time (see entitlement/checkout.ts).
+  DODO_PRODUCT_ID: z.string().min(1),
   DODO_PRODUCT_PRICE_CENTS: z.coerce.number().int().nonnegative().default(0),
   DODO_PRODUCT_CURRENCY: z.string().default("USD"),
 

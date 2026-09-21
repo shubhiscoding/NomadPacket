@@ -47,6 +47,19 @@ beforeAll(async () => {
   });
   applicationId = application.id;
   await generateApplicationDocuments(applicationId);
+  // Download/email are entitlement-gated on a real PAID Payment row now
+  // (entitlement/guard.ts) rather than the old always-true stub — these
+  // tests are about download/email behavior once payment has already
+  // succeeded, not about the payment flow itself, so seed that directly.
+  await prisma.payment.create({
+    data: {
+      applicationId,
+      providerRef: `test_payment_${applicationId}`,
+      status: "PAID",
+      amount: 0,
+      currency: "USD",
+    },
+  });
 });
 
 afterAll(async () => {
@@ -105,6 +118,17 @@ describe("GET /api/documents/[id]/download", () => {
     vi.mocked(getCurrentUser).mockResolvedValue(testUser);
     const emptyApplication = await prisma.application.create({
       data: { userId: testUser.id, country: "PT", visaType: "D8_RESIDENCE" },
+    });
+    // Paid but never generated — isolates the "no documents" 409 path from
+    // the entitlement check, which runs first in the route.
+    await prisma.payment.create({
+      data: {
+        applicationId: emptyApplication.id,
+        providerRef: `test_payment_${emptyApplication.id}`,
+        status: "PAID",
+        amount: 0,
+        currency: "USD",
+      },
     });
     const { GET } = await import("@/app/api/documents/[id]/download/route");
     const res = await GET(
