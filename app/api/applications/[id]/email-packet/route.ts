@@ -6,6 +6,11 @@ import { hasEntitlement } from "@/entitlement/guard";
 import { sendPacketReadyEmail } from "@/notifications/send";
 
 /**
+ * ⚠️ DORMANT, UNLINKED — the "Email me my packet" button was removed from
+ * the checklist UI to avoid per-send Resend cost while pre-revenue (same
+ * reasoning as dropping magic-link sign-in emails). This route still
+ * works if called directly; kept rather than deleted.
+ *
  * Emails the full packet as a ZIP attachment to the signed-in user's own
  * address — the backup delivery channel alongside the download route
  * (AGENTS.md build order step 9). Same entitlement gate as the download
