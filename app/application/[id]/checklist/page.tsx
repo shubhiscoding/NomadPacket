@@ -20,7 +20,11 @@ import { DocumentPreviewButton } from "./document-preview-button";
 import { hasEntitlement } from "@/entitlement/guard";
 import { generateApplicationDocuments } from "@/document-engine/generate-packet";
 import { getDocumentPreviewData } from "@/document-engine/preview-data";
+import { checkRateLimit, consumeRateLimit, retryAfterMinutes } from "@/lib/rate-limit";
+import { RateLimitNotice } from "@/components/RateLimitNotice";
 import type { DocumentType } from "@prisma/client";
+
+const REGENERATE_RATE_LIMIT = { max: 5, windowMs: 30 * 60 * 1000 };
 
 const BUCKET_1_2_LABELS: Record<DocumentType, string> = {
   MOTIVATION_LETTER: "Motivation letter",
@@ -62,13 +66,27 @@ export default async function ChecklistPage({
   // relative to an answer edited since the last generation. Answers are
   // only editable pre-payment (see the card below), so staleness can
   // only happen in the unpaid state.
+  //
+  // Regeneration itself costs real compute (PDF rendering, FX API calls),
+  // so it's rate-limited (5 per 30 min, sliding window) — checked with
+  // consumeRateLimit only at the moment regeneration would actually run,
+  // never on a plain page view. If blocked, skip regeneration gracefully
+  // and keep showing whatever documents already exist rather than
+  // erroring — a stale document is far better UX than a broken page.
   const isStale = generatedDocuments.some((doc) => doc.generatedAt < application.updatedAt);
-  if (questionnaireComplete && (generatedDocuments.length === 0 || (!isPaid && isStale))) {
-    await generateApplicationDocuments(id);
-    generatedDocuments = await prisma.generatedDocument.findMany({
-      where: { applicationId: id },
-      orderBy: { generatedAt: "desc" },
-    });
+  const needsRegeneration =
+    questionnaireComplete && (generatedDocuments.length === 0 || (!isPaid && isStale));
+
+  let regenRateLimit = await checkRateLimit(`regenerate:${id}`, REGENERATE_RATE_LIMIT);
+  if (needsRegeneration) {
+    regenRateLimit = await consumeRateLimit(`regenerate:${id}`, REGENERATE_RATE_LIMIT);
+    if (regenRateLimit.allowed) {
+      await generateApplicationDocuments(id);
+      generatedDocuments = await prisma.generatedDocument.findMany({
+        where: { applicationId: id },
+        orderBy: { generatedAt: "desc" },
+      });
+    }
   }
 
   const generatedByType = new Map(generatedDocuments.map((d) => [d.type, d]));
@@ -147,7 +165,7 @@ export default async function ChecklistPage({
             </span>
           ) : (
             <Link
-              href="/start"
+              href="/start?new=1"
               className="inline-flex items-center rounded-full border border-stone-200 px-3 py-1 text-xs font-medium text-stone-600 transition-colors hover:border-stone-300 hover:bg-stone-50"
             >
               Fill new form
@@ -216,6 +234,23 @@ export default async function ChecklistPage({
                 Edit answers
               </Link>
             </div>
+            {!regenRateLimit.allowed ? (
+              <div className="mt-2">
+                <RateLimitNotice tone="blocked">
+                  You&apos;ve hit the edit limit for now — the documents below are from your last
+                  edit. Try again in {retryAfterMinutes(regenRateLimit.retryAfterMs)} minute(s).
+                </RateLimitNotice>
+              </div>
+            ) : (
+              regenRateLimit.remaining <= 2 && (
+                <div className="mt-2">
+                  <RateLimitNotice>
+                    {regenRateLimit.remaining} edit{regenRateLimit.remaining === 1 ? "" : "s"} left
+                    before a short cooldown.
+                  </RateLimitNotice>
+                </div>
+              )
+            )}
           </>
         ) : (
           <>

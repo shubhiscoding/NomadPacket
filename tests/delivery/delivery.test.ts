@@ -71,6 +71,7 @@ afterAll(async () => {
       await prisma.user.delete({ where: { id: user.id } });
     }
   }
+  await prisma.rateLimitEvent.deleteMany({ where: { key: `packet-email:${applicationId}` } });
   await prisma.$disconnect();
 });
 
@@ -172,5 +173,26 @@ describe("POST /api/applications/[id]/email-packet", () => {
       { params: Promise.resolve({ id: applicationId }) },
     );
     expect(res.status).toBe(502);
+  });
+
+  it("rate-limits to 3 sends per day per application (429 on the 4th, not a silent extra send)", async () => {
+    // The two tests above already consumed 2 of the 3 allowed attempts for
+    // this applicationId — this test consumes the 3rd (still allowed) and
+    // then confirms the 4th is blocked.
+    vi.mocked(getCurrentUser).mockResolvedValue(testUser);
+    sendMock.mockResolvedValue({ data: { id: "email_123" }, error: null });
+    const { POST } = await import("@/app/api/applications/[id]/email-packet/route");
+    const request = () =>
+      new NextRequest(`http://localhost:3000/api/applications/${applicationId}/email-packet`, {
+        method: "POST",
+      });
+
+    const third = await POST(request(), { params: Promise.resolve({ id: applicationId }) });
+    expect(third.status).toBe(200);
+
+    const fourth = await POST(request(), { params: Promise.resolve({ id: applicationId }) });
+    expect(fourth.status).toBe(429);
+    const data = await fourth.json();
+    expect(data.error).toContain("download");
   });
 });

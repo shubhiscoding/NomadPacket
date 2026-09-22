@@ -36,7 +36,20 @@ describe("POST /api/qualifier", () => {
     const setCookie = res.cookies.get(GATE_CONTEXT_COOKIE_NAME);
     expect(setCookie?.value).toBeTruthy();
     const ctx = verifyGateContextCookieValue(setCookie?.value);
-    expect(ctx).toEqual({ country: "PT", visaType: "D8_RESIDENCE" });
+    expect(ctx).toEqual({ country: "PT", visaType: "D8_RESIDENCE", forceNew: false });
+  });
+
+  it("threads forceNew through to the gate-context cookie when set (the 'Fill new form' signal)", async () => {
+    const res = await qualifierPost(
+      postJson("http://localhost:3000/api/qualifier", {
+        country: "PT",
+        visaType: "D8_RESIDENCE",
+        forceNew: true,
+      }),
+    );
+    const setCookie = res.cookies.get(GATE_CONTEXT_COOKIE_NAME);
+    const ctx = verifyGateContextCookieValue(setCookie?.value);
+    expect(ctx?.forceNew).toBe(true);
   });
 
   it("unsupported selection: redirects to /waitlist, sets no gate-context cookie", async () => {

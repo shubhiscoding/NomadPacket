@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { qualifierGateOptions } from "@/country-config/qualifier-gate";
 
 /**
@@ -9,9 +9,30 @@ import { qualifierGateOptions } from "@/country-config/qualifier-gate";
  * Renders whatever qualifierGateOptions holds — adding a second visa type
  * or country is a config change (country-config/qualifier-gate.ts), never a
  * change to this component.
+ *
+ * `?new=1` (only ever set by the checklist's "Fill new form" link) is
+ * threaded through to /api/qualifier as `forceNew` — see
+ * lib/gate-context.ts for why this explicit flag exists rather than
+ * treating any valid gate-context cookie as "start fresh": every sign-in
+ * passes through this same page, so cookie presence alone can't tell
+ * "just logging in" apart from "explicitly starting over."
+ *
+ * `useSearchParams()` requires a Suspense boundary above it (Next.js App
+ * Router build-time requirement, not optional) — the default export here
+ * is just that boundary; StartForm below has the actual page.
  */
 export default function StartPage() {
+  return (
+    <Suspense fallback={null}>
+      <StartForm />
+    </Suspense>
+  );
+}
+
+function StartForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const forceNew = searchParams.get("new") === "1";
   const [selected, setSelected] = useState(qualifierGateOptions[0]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +44,7 @@ export default function StartPage() {
       const res = await fetch("/api/qualifier", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ country: selected.country, visaType: selected.visaType }),
+        body: JSON.stringify({ country: selected.country, visaType: selected.visaType, forceNew }),
       });
       if (!res.ok) throw new Error("Something went wrong. Please try again.");
       const data = await res.json();

@@ -2,12 +2,15 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { RateLimitNotice } from "@/components/RateLimitNotice";
 
-export function LoginForm() {
+export function LoginForm({ showGoogleFallbackLink = true }: { showGoogleFallbackLink?: boolean }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [remaining, setRemaining] = useState<number | null>(null);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -19,10 +22,11 @@ export function LoginForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
         throw new Error(data.error ?? "Something went wrong. Please try again.");
       }
+      if (typeof data.remaining === "number") setRemaining(data.remaining);
       router.push(`/verify?email=${encodeURIComponent(email)}`);
     } catch (err) {
       setStatus("error");
@@ -44,8 +48,23 @@ export function LoginForm() {
         placeholder="you@example.com"
         className="rounded-lg border border-stone-200 px-4 py-3 text-sm text-stone-900 outline-none focus:border-teal-700"
       />
+      {remaining !== null && remaining <= 2 && (
+        <RateLimitNotice>
+          {remaining} sign-in email{remaining === 1 ? "" : "s"} left before a short cooldown.
+        </RateLimitNotice>
+      )}
       {status === "error" && errorMessage && (
-        <p className="text-sm text-red-600">{errorMessage}</p>
+        <div>
+          <p className="text-sm text-red-600">{errorMessage}</p>
+          {showGoogleFallbackLink && (
+            <Link
+              href="/signin"
+              className="mt-1 inline-block text-sm font-medium text-teal-800 hover:underline"
+            >
+              Sign in with Google instead
+            </Link>
+          )}
+        </div>
       )}
       <button
         type="submit"

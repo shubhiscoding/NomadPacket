@@ -9,9 +9,14 @@ vi.mock("@/notifications/send", () => ({
 }));
 
 const TEST_EMAIL = "magic-link-route-test@example.com";
+const RATE_LIMIT_TEST_EMAIL = "magic-link-ratelimit-test@example.com";
 
-function requestWithGateCookie(body: unknown, gateContextCookie?: string): NextRequest {
-  const headers = new Headers({ "Content-Type": "application/json" });
+function requestWithGateCookie(
+  body: unknown,
+  gateContextCookie?: string,
+  extraHeaders?: Record<string, string>,
+): NextRequest {
+  const headers = new Headers({ "Content-Type": "application/json", ...extraHeaders });
   if (gateContextCookie) {
     headers.set("cookie", `${GATE_CONTEXT_COOKIE_NAME}=${gateContextCookie}`);
   }
@@ -23,7 +28,14 @@ function requestWithGateCookie(body: unknown, gateContextCookie?: string): NextR
 }
 
 afterAll(async () => {
-  await prisma.magicLinkToken.deleteMany({ where: { email: TEST_EMAIL } });
+  await prisma.magicLinkToken.deleteMany({
+    where: { email: { in: [TEST_EMAIL, RATE_LIMIT_TEST_EMAIL] } },
+  });
+  // These tests write RateLimitEvent rows (magic-link is now rate-limited
+  // per email AND per IP) — purge so repeated test runs within the same
+  // 15-minute window don't accumulate toward the real limit and cause
+  // unrelated future test runs to see false 429s.
+  await prisma.rateLimitEvent.deleteMany({ where: { key: { startsWith: "magic-link:" } } });
   await prisma.$disconnect();
 });
 
@@ -78,5 +90,27 @@ describe("POST /api/auth/magic-link", () => {
     expect(res.status).toBe(502);
     const data = await res.json();
     expect(data.ok).toBeUndefined();
+  });
+
+  it("rate-limits repeated requests for the same email within the window (429, not a silent extra send)", async () => {
+    sendMagicLinkEmailMock.mockClear();
+    const gateCookie = createGateContextCookieValue({ country: "PT", visaType: "D8_RESIDENCE" });
+    const { POST } = await import("@/app/api/auth/magic-link/route");
+    // A distinct IP isolates this test's rate-limit bucket from the other
+    // tests in this file, which all share the default "unknown" IP key.
+    const extraHeaders = { "x-forwarded-for": "203.0.113.5" };
+
+    const results = [];
+    for (let i = 0; i < 4; i++) {
+      results.push(
+        await POST(requestWithGateCookie({ email: RATE_LIMIT_TEST_EMAIL }, gateCookie, extraHeaders)),
+      );
+    }
+
+    expect(results.slice(0, 3).map((r) => r.status)).toEqual([200, 200, 200]);
+    expect(results[3].status).toBe(429);
+    const data = await results[3].json();
+    expect(data.error).toContain("Google sign-in");
+    expect(sendMagicLinkEmailMock).toHaveBeenCalledTimes(3);
   });
 });
