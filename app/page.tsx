@@ -49,7 +49,7 @@ export default function LandingPage() {
               Start your application
             </Link>
             <p className="text-xs text-stone-400">
-              Free to preview your documents. Pay once, only when you download.
+              Free to preview. <span className="font-semibold text-stone-600">$59</span> to download your packet.
             </p>
           </div>
         </div>
@@ -154,18 +154,26 @@ export default function LandingPage() {
             <p className="text-xs font-medium uppercase tracking-wide text-stone-400">
               Same answers, every document
             </p>
-            <div className="mt-3 flex flex-col gap-2 text-sm text-stone-600">
-              <div className="flex items-center justify-between rounded-lg border border-stone-100 px-3 py-2">
-                <span>Motivation letter</span>
-                <span className="text-stone-400">$6,200/mo · Mar 1, 2027</span>
+            <div className="mt-4 space-y-3 text-xs text-stone-600">
+              <div className="rounded-lg border border-stone-100 bg-stone-50/40 p-3">
+                <p className="font-semibold text-stone-700">Motivation letter</p>
+                <p className="mt-1 leading-relaxed">
+                  "I plan to relocate to Portugal on <span className="font-semibold text-teal-700">Mar 1, 2027</span>, with a stable monthly income of <span className="font-semibold text-teal-700">$6,200</span>…"
+                </p>
               </div>
-              <div className="flex items-center justify-between rounded-lg border border-stone-100 px-3 py-2">
-                <span>Income summary</span>
-                <span className="text-stone-400">$6,200/mo · Mar 1, 2027</span>
+              <div className="rounded-lg border border-stone-100 bg-stone-50/40 p-3">
+                <p className="font-semibold text-stone-700">Income summary sheet</p>
+                <p className="mt-1 space-y-0.5">
+                  <span>Monthly income: <span className="font-semibold text-teal-700">$6,200</span></span><br />
+                  <span>Effective from: <span className="font-semibold text-teal-700">Mar 1, 2027</span></span>
+                </p>
               </div>
-              <div className="flex items-center justify-between rounded-lg border border-stone-100 px-3 py-2">
-                <span>Visa form</span>
-                <span className="text-stone-400">$6,200/mo · Mar 1, 2027</span>
+              <div className="rounded-lg border border-stone-100 bg-stone-50/40 p-3">
+                <p className="font-semibold text-stone-700">Visa form (auto-filled)</p>
+                <p className="mt-1 space-y-0.5">
+                  <span>Expected move: <span className="font-semibold text-teal-700">Mar 1, 2027</span></span><br />
+                  <span>Monthly income: <span className="font-semibold text-teal-700">$6,200</span></span>
+                </p>
               </div>
             </div>
           </div>

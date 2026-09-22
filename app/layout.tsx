@@ -37,7 +37,7 @@ const fraunces = Fraunces({
 // wants one, rather than having one silently appended twice.
 export const metadata: Metadata = {
   metadataBase: new URL(getEnv().NEXT_PUBLIC_SITE_URL),
-  title: "NomadPacket — Portugal D8 Visa Document Packet",
+  title: "Portugal D8 Visa Document Checklist & Generator | NomadPacket",
   description:
     "Assemble the document packet for Portugal's D8 digital nomad residence visa.",
   // seo.md §6: Search Console verification, optional — set this env var
