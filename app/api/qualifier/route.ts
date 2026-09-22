@@ -6,6 +6,7 @@ import { createGateContextCookieValue, GATE_CONTEXT_COOKIE_NAME } from "@/lib/ga
 const bodySchema = z.object({
   country: z.string().min(1),
   visaType: z.string().min(1),
+  forceNew: z.boolean().optional(),
 });
 
 /**
@@ -21,7 +22,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  const { country, visaType } = parsed.data;
+  const { country, visaType, forceNew } = parsed.data;
 
   if (!isSupported(country, visaType)) {
     const redirectTo = `/waitlist?country=${encodeURIComponent(country)}&visaType=${encodeURIComponent(visaType)}`;
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
   const response = NextResponse.json({ redirectTo: "/signin" });
   response.cookies.set(
     GATE_CONTEXT_COOKIE_NAME,
-    createGateContextCookieValue({ country, visaType }),
+    createGateContextCookieValue({ country, visaType, forceNew }),
     {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

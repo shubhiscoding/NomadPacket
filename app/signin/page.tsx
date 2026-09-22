@@ -3,14 +3,16 @@ import { redirect } from "next/navigation";
 import { signIn } from "@/auth/auth";
 import { getCurrentUser } from "@/auth/current-user";
 import { GATE_CONTEXT_COOKIE_NAME, verifyGateContextCookieValue } from "@/lib/gate-context";
+import { LoginForm } from "@/app/(auth)/login/login-form";
 
 /**
- * The active sign-in entry point — Google only. Same gate-enforcement
- * rule as the old (now dormant) /login: only reachable with a valid,
+ * The single sign-in entry point — both magic-link (primary, an inline
+ * email input + button) and Google (secondary, below an "or" divider).
+ * Same gate-enforcement rule as /login: only reachable with a valid,
  * unexpired gate-context cookie, set by /start via POST /api/qualifier.
- * Deliberately a NEW route rather than repurposing /login, so the old
- * magic-link page stays untouched per the decision to keep that code
- * dormant instead of deleting or overwriting it.
+ * Reuses /login's LoginForm component directly rather than linking out
+ * to a separate page — /login itself still works standalone if hit
+ * directly, but this page no longer needs to navigate away for it.
  */
 export default async function SignInPage() {
   // /api/qualifier always redirects here on a supported selection,
@@ -41,10 +43,18 @@ export default async function SignInPage() {
       <p className="text-sm font-medium text-stone-500">NomadPacket</p>
       <h1 className="mt-2 text-2xl font-semibold text-stone-900">Sign in</h1>
       <p className="mt-2 text-sm leading-relaxed text-stone-600">
-        Sign in with Google to start your application — no password needed.
+        Enter your email for a magic sign-in link — no password needed.
       </p>
 
-      <form action={handleGoogleSignIn} className="mt-8">
+      <LoginForm showGoogleFallbackLink={false} />
+
+      <div className="mt-6 flex items-center gap-3">
+        <div className="h-px flex-1 bg-stone-200" />
+        <span className="text-xs font-medium uppercase tracking-wide text-stone-400">Or</span>
+        <div className="h-px flex-1 bg-stone-200" />
+      </div>
+
+      <form action={handleGoogleSignIn} className="mt-6">
         <button
           type="submit"
           className="flex w-full items-center justify-center gap-3 rounded-lg border border-stone-200 bg-white px-4 py-3 text-sm font-semibold text-stone-800 transition-colors hover:border-stone-300 hover:bg-stone-50"

@@ -7,11 +7,11 @@ import { StatusPill } from "@/components/StatusPill";
 
 /**
  * "My documents" — every packet the user has PAID for, listed regardless
- * of which Application it belongs to (see app/application/page.tsx's
- * findResumableApplication, which now excludes PAID applications from
- * the single-resumable-slot so a user can buy more than one packet).
- * Abandoned/in-progress applications intentionally never appear here —
- * this is a receipt list, not a drafts list.
+ * of which Application it belongs to (app/application/page.tsx sends a
+ * user to a specific application's checklist/questionnaire, but this
+ * page always shows every paid one). Abandoned/in-progress applications
+ * intentionally never appear here — this is a receipt list, not a
+ * drafts list.
  */
 export default async function DocumentHistoryPage({
   searchParams,
@@ -21,16 +21,28 @@ export default async function DocumentHistoryPage({
   const user = await getCurrentUser();
   if (!user) redirect("/signin");
 
-  const paidApplications = await prisma.application.findMany({
+  const paidApplicationsByStart = await prisma.application.findMany({
     where: { userId: user.id, status: "PAID" },
-    orderBy: { createdAt: "desc" },
     include: {
       // Oldest row per application is enough to know whether the cron
       // (app/api/cron/delete-expired-documents/route.ts) has already
       // deleted everything, and gives the conservative (earliest
       // possible) expiry date if not.
       generatedDocuments: { orderBy: { generatedAt: "asc" }, take: 1 },
+      // Most recent PAID payment — application.createdAt is when the
+      // questionnaire was STARTED, not when it was paid for, and those
+      // can be days apart (start on the 21st, finish/pay on the 22nd).
+      // Showing/sorting by createdAt was flatly wrong whenever that gap
+      // exists — this is a receipts list, it should reflect purchase
+      // order, not questionnaire-start order. Sorted below in JS since
+      // Prisma can't order a parent query by a related row's field.
+      payments: { where: { status: "PAID" }, orderBy: { createdAt: "desc" }, take: 1 },
     },
+  });
+  const paidApplications = [...paidApplicationsByStart].sort((a, b) => {
+    const aPaidAt = a.payments[0]?.createdAt ?? a.createdAt;
+    const bPaidAt = b.payments[0]?.createdAt ?? b.createdAt;
+    return bPaidAt.getTime() - aPaidAt.getTime();
   });
 
   // The checklist page links here with ?from=<applicationId> so "Back"
@@ -71,6 +83,12 @@ export default async function DocumentHistoryPage({
           const availableUntil = oldestDoc
             ? new Date(oldestDoc.generatedAt.getTime() + RETENTION_DAYS * 24 * 60 * 60 * 1000)
             : null;
+          // Falls back to createdAt only in the unexpected case a PAID
+          // application somehow has no PAID payment row — should be
+          // unreachable (status only flips to PAID from the webhook,
+          // which creates the row in the same call), but a fallback
+          // is cheap and avoids ever rendering a blank date.
+          const purchasedAt = application.payments[0]?.createdAt ?? application.createdAt;
 
           return (
             <div
@@ -83,7 +101,7 @@ export default async function DocumentHistoryPage({
                 </p>
                 <p className="mt-1 text-xs text-stone-500">
                   Purchased{" "}
-                  {application.createdAt.toLocaleDateString("en-US", {
+                  {purchasedAt.toLocaleDateString("en-US", {
                     year: "numeric",
                     month: "long",
                     day: "numeric",

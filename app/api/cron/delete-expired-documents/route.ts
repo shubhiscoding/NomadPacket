@@ -41,5 +41,14 @@ export async function GET(request: NextRequest) {
     where: { id: { in: expired.map((doc) => doc.id) } },
   });
 
-  return NextResponse.json({ deletedCount: expired.length });
+  // Also purge rate-limit event rows older than the longest window any
+  // caller uses (24h, see lib/rate-limit.ts) — nothing older than that is
+  // ever queried again, so this is pure cleanup, never touches an
+  // in-window attempt.
+  const rateLimitCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const { count: deletedRateLimitEvents } = await prisma.rateLimitEvent.deleteMany({
+    where: { createdAt: { lt: rateLimitCutoff } },
+  });
+
+  return NextResponse.json({ deletedCount: expired.length, deletedRateLimitEvents });
 }

@@ -249,3 +249,19 @@ model CountryConfig {
   @@index([country, visaType, homeCountry, key])
   @@map("country_configs")
 }
+
+// Generic sliding-window rate-limit event log (lib/rate-limit.ts) — one row
+// per attempt, keyed by an arbitrary string the caller defines (e.g.
+// "magic-link:email:x@y.com", "packet-email:<applicationId>",
+// "regenerate:<applicationId>"). A single reusable mechanism backs every
+// rate limit in the app rather than one-off counters per feature. Rows
+// older than the longest window in use (24h) are purged daily by the
+// retention cron (app/api/cron/delete-expired-documents/route.ts).
+model RateLimitEvent {
+  id        String   @id @default(cuid())
+  key       String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([key, createdAt])
+  @@map("rate_limit_events")
+}
