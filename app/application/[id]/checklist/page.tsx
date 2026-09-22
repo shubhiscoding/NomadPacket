@@ -327,6 +327,13 @@ export default async function ChecklistPage({
             status="action_needed"
             description="Gather 6 months of statements or invoices highlighting your monthly income, to support the income summary sheet above."
           />
+          {answers.employmentType === "business_owner" && answers.businessIsRegisteredEntity === true && (
+            <ChecklistItem
+              title="Business registration documents"
+              status="action_needed"
+              description="Gather your business registration/incorporation certificate for the entity noted in your questionnaire answers."
+            />
+          )}
           <ChecklistItem
             title="Health insurance"
             status={healthInsuranceCheck.status}

@@ -144,20 +144,22 @@ describe("mapAnswersToEmployerConfirmationData", () => {
 });
 
 describe("mapAnswersToFreelancerNarrativeData", () => {
-  it("maps freelancer answers", () => {
+  it("maps freelancer answers with composed intro and income paragraphs", () => {
     const data = mapAnswersToFreelancerNarrativeData(freelancerUkFixture.answers as Answers, {
       homeCountryLabel: "United Kingdom",
     });
-    expect(data.roleDescriptor).toBe("freelancer");
-    expect(data.clientNamesOrTypes).toBe(freelancerUkFixture.answers.employerOrClientNames);
+    expect(data.introParagraph).toContain("independent freelancer");
+    expect(data.introParagraph).toContain(freelancerUkFixture.answers.employerOrClientNames);
+    expect(data.incomeParagraph).toContain("months");
+    expect(data.reviewWarning).toBeUndefined();
   });
 
-  it("uses 'business owner' descriptor for business_owner employment type", () => {
+  it("uses 'business owner' role description for business_owner employment type", () => {
     const data = mapAnswersToFreelancerNarrativeData(
       businessCaDependentsFixture.answers as Answers,
       { homeCountryLabel: "Canada" },
     );
-    expect(data.roleDescriptor).toBe("business owner");
+    expect(data.introParagraph).toContain("business owner");
   });
 });
 

@@ -98,9 +98,130 @@ export const portugalD8ResidenceQuestionnaire: QuestionnaireConfig = {
           required: false,
         },
         {
+          id: "hasChangedEmployerRecently",
+          section: "B",
+          label: "Have you changed employers in the past 6 months?",
+          fieldType: "boolean",
+          required: true,
+          visibleWhen: { questionId: "employmentType", equals: "employee" },
+        },
+        {
+          id: "previousEmployerName",
+          section: "B",
+          label: "Previous employer name",
+          fieldType: "text",
+          required: true,
+          visibleWhen: {
+            all: [
+              { questionId: "employmentType", equals: "employee" },
+              { questionId: "hasChangedEmployerRecently", equals: true },
+            ],
+          },
+        },
+        {
+          id: "previousEmployerJobTitle",
+          section: "B",
+          label: "Job title at previous employer (optional)",
+          fieldType: "text",
+          required: false,
+          visibleWhen: {
+            all: [
+              { questionId: "employmentType", equals: "employee" },
+              { questionId: "hasChangedEmployerRecently", equals: true },
+            ],
+          },
+        },
+        {
+          id: "previousEmployerStartDate",
+          section: "B",
+          label: "When did you start at the previous employer?",
+          fieldType: "date",
+          required: true,
+          visibleWhen: {
+            all: [
+              { questionId: "employmentType", equals: "employee" },
+              { questionId: "hasChangedEmployerRecently", equals: true },
+            ],
+          },
+        },
+        {
+          id: "previousEmployerEndDate",
+          section: "B",
+          label: "When did you leave the previous employer?",
+          fieldType: "date",
+          required: true,
+          visibleWhen: {
+            all: [
+              { questionId: "employmentType", equals: "employee" },
+              { questionId: "hasChangedEmployerRecently", equals: true },
+            ],
+          },
+        },
+        {
+          id: "previousEmployerMonthlyIncome",
+          section: "B",
+          label: "Monthly income at previous employer (before tax)",
+          fieldType: "currency",
+          required: true,
+          validation: [{ type: "min", value: 0 }],
+          visibleWhen: {
+            all: [
+              { questionId: "employmentType", equals: "employee" },
+              { questionId: "hasChangedEmployerRecently", equals: true },
+            ],
+          },
+        },
+        {
+          id: "previousEmployerIncomeCurrency",
+          section: "B",
+          label: "Currency for previous employer income",
+          fieldType: "select",
+          required: true,
+          options: [
+            { value: "USD", label: "USD" },
+            { value: "GBP", label: "GBP" },
+            { value: "CAD", label: "CAD" },
+            { value: "EUR", label: "EUR" },
+          ],
+          visibleWhen: {
+            all: [
+              { questionId: "employmentType", equals: "employee" },
+              { questionId: "hasChangedEmployerRecently", equals: true },
+            ],
+          },
+        },
+        {
+          id: "hadEmploymentGap",
+          section: "B",
+          label: "Was there a gap between jobs?",
+          fieldType: "boolean",
+          required: true,
+          visibleWhen: {
+            all: [
+              { questionId: "employmentType", equals: "employee" },
+              { questionId: "hasChangedEmployerRecently", equals: true },
+            ],
+          },
+        },
+        {
+          id: "employmentGapExplanation",
+          section: "B",
+          label: "Why was there a gap? (optional)",
+          fieldType: "textarea",
+          required: false,
+          visibleWhen: {
+            all: [
+              { questionId: "employmentType", equals: "employee" },
+              { questionId: "hasChangedEmployerRecently", equals: true },
+              { questionId: "hadEmploymentGap", equals: true },
+            ],
+          },
+        },
+        {
           id: "employmentStartDate",
           section: "B",
           label: "Employment start date",
+          helpText: "When you started at your current employer",
           fieldType: "date",
           required: true,
           visibleWhen: { questionId: "employmentType", equals: "employee" },
@@ -109,9 +230,92 @@ export const portugalD8ResidenceQuestionnaire: QuestionnaireConfig = {
           id: "employerOrClientNames",
           section: "B",
           label: "Employer name",
+          helpText: "Your current employer",
           fieldType: "text",
           required: true,
           visibleWhen: { questionId: "employmentType", equals: "employee" },
+        },
+        {
+          id: "freelancerClientBase",
+          section: "B",
+          label: "Do you have a few named clients, or too many to list?",
+          fieldType: "radio",
+          required: true,
+          options: [
+            { value: "few_named", label: "A few named clients" },
+            { value: "many_unnamed", label: "Too many clients to name (marketplace, gig work, etc.)" },
+          ],
+          visibleWhen: { questionId: "employmentType", equals: "freelancer" },
+        },
+        {
+          id: "freelancerClientCount",
+          section: "B",
+          label: "Approximately how many client engagements in the past 6 months?",
+          fieldType: "number",
+          required: true,
+          validation: [{ type: "min", value: 1 }],
+          visibleWhen: {
+            any: [
+              {
+                all: [
+                  { questionId: "employmentType", equals: "freelancer" },
+                  { questionId: "freelancerClientBase", equals: "many_unnamed" },
+                ],
+              },
+              {
+                all: [
+                  { questionId: "employmentType", equals: "business_owner" },
+                  { questionId: "businessIncomeType", equals: "many_clients" },
+                ],
+              },
+            ],
+          },
+        },
+        {
+          id: "freelancerClientPlatforms",
+          section: "B",
+          label: "Where do you find your clients? (e.g., Upwork, direct referrals, app marketplace)",
+          fieldType: "text",
+          required: true,
+          visibleWhen: {
+            any: [
+              {
+                all: [
+                  { questionId: "employmentType", equals: "freelancer" },
+                  { questionId: "freelancerClientBase", equals: "many_unnamed" },
+                ],
+              },
+              {
+                all: [
+                  { questionId: "employmentType", equals: "business_owner" },
+                  { questionId: "businessIncomeType", equals: "many_clients" },
+                ],
+              },
+            ],
+          },
+        },
+        {
+          id: "freelancerNotableClients",
+          section: "B",
+          label: "Any notable clients you'd like to mention? (optional)",
+          fieldType: "text",
+          required: false,
+          visibleWhen: {
+            any: [
+              {
+                all: [
+                  { questionId: "employmentType", equals: "freelancer" },
+                  { questionId: "freelancerClientBase", equals: "many_unnamed" },
+                ],
+              },
+              {
+                all: [
+                  { questionId: "employmentType", equals: "business_owner" },
+                  { questionId: "businessIncomeType", equals: "many_clients" },
+                ],
+              },
+            ],
+          },
         },
         {
           id: "employerOrClientNames",
@@ -120,8 +324,15 @@ export const portugalD8ResidenceQuestionnaire: QuestionnaireConfig = {
           fieldType: "text",
           required: true,
           visibleWhen: {
-            questionId: "employmentType",
-            in: ["freelancer", "business_owner"],
+            any: [
+              { questionId: "freelancerClientBase", equals: "few_named" },
+              {
+                all: [
+                  { questionId: "employmentType", equals: "business_owner" },
+                  { questionId: "businessIncomeType", equals: "few_clients" },
+                ],
+              },
+            ],
           },
         },
         {
@@ -167,6 +378,132 @@ export const portugalD8ResidenceQuestionnaire: QuestionnaireConfig = {
           fieldType: "currency",
           required: true,
           visibleWhen: { questionId: "hasSavingsBuffer", equals: true },
+        },
+        {
+          id: "businessIncomeType",
+          section: "B",
+          label: "How does your business generate income?",
+          fieldType: "radio",
+          required: true,
+          options: [
+            { value: "few_clients", label: "Client services (few named clients)" },
+            { value: "many_clients", label: "Client services (too many to name)" },
+            { value: "product_revenue", label: "SaaS or digital product sales" },
+            { value: "creator_revenue", label: "Content creation (YouTube, Patreon, etc.)" },
+            { value: "other", label: "Other business model" },
+          ],
+          visibleWhen: { questionId: "employmentType", equals: "business_owner" },
+        },
+        {
+          id: "businessIsRegisteredEntity",
+          section: "B",
+          label: "Is your business a registered legal entity?",
+          fieldType: "boolean",
+          required: true,
+          visibleWhen: { questionId: "employmentType", equals: "business_owner" },
+        },
+        {
+          id: "businessRegisteredCountry",
+          section: "B",
+          label: "Country where the business is registered",
+          fieldType: "text",
+          required: false,
+          visibleWhen: {
+            all: [
+              { questionId: "employmentType", equals: "business_owner" },
+              { questionId: "businessIsRegisteredEntity", equals: true },
+            ],
+          },
+        },
+        {
+          id: "businessProductDescription",
+          section: "B",
+          label: "What is your product or service?",
+          fieldType: "textarea",
+          required: true,
+          visibleWhen: {
+            all: [
+              { questionId: "employmentType", equals: "business_owner" },
+              { questionId: "businessIncomeType", equals: "product_revenue" },
+            ],
+          },
+        },
+        {
+          id: "businessCustomerCount",
+          section: "B",
+          label: "Approximately how many customers or paying users?",
+          fieldType: "number",
+          required: true,
+          validation: [{ type: "min", value: 1 }],
+          visibleWhen: {
+            all: [
+              { questionId: "employmentType", equals: "business_owner" },
+              { questionId: "businessIncomeType", equals: "product_revenue" },
+            ],
+          },
+        },
+        {
+          id: "businessRevenueModel",
+          section: "B",
+          label: "Revenue model",
+          fieldType: "select",
+          required: true,
+          options: [
+            { value: "subscription", label: "Subscription / recurring" },
+            { value: "one_time", label: "One-time purchases" },
+            { value: "other", label: "Mixed or other" },
+          ],
+          visibleWhen: {
+            all: [
+              { questionId: "employmentType", equals: "business_owner" },
+              { questionId: "businessIncomeType", equals: "product_revenue" },
+            ],
+          },
+        },
+        {
+          id: "creatorPlatforms",
+          section: "B",
+          label: "Which platforms? (e.g., YouTube, Patreon, Substack, TikTok)",
+          fieldType: "text",
+          required: true,
+          visibleWhen: {
+            all: [
+              { questionId: "employmentType", equals: "business_owner" },
+              { questionId: "businessIncomeType", equals: "creator_revenue" },
+            ],
+          },
+        },
+        {
+          id: "creatorIncomeType",
+          section: "B",
+          label: "Primary income source",
+          fieldType: "select",
+          required: true,
+          options: [
+            { value: "ad_revenue", label: "Ad revenue / platform monetization" },
+            { value: "sponsorships", label: "Brand sponsorships" },
+            { value: "subscriber_payments", label: "Direct subscriber payments" },
+            { value: "mixed", label: "Mixed sources" },
+          ],
+          visibleWhen: {
+            all: [
+              { questionId: "employmentType", equals: "business_owner" },
+              { questionId: "businessIncomeType", equals: "creator_revenue" },
+            ],
+          },
+        },
+        {
+          id: "businessOtherDescription",
+          section: "B",
+          label: "Please describe your business and how it generates income",
+          fieldType: "textarea",
+          required: true,
+          visibleWhen: {
+            all: [
+              { questionId: "employmentType", equals: "business_owner" },
+              { questionId: "businessIncomeType", equals: "other" },
+            ],
+          },
         },
       ],
     },
