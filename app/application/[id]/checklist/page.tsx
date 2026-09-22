@@ -118,7 +118,10 @@ export default async function ChecklistPage({
     }),
   ]);
 
-  const previewData = questionnaireComplete ? await getDocumentPreviewData(id) : {};
+  const homeCountryLabel = criminalRecordResult?.value.homeCountryLabel ?? nationality;
+  const previewData = questionnaireComplete
+    ? await getDocumentPreviewData(application, homeCountryLabel)
+    : {};
 
   const passportCheck = checkPassportValidity({
     passportExpiry: answers.passportExpiry as string | undefined,
