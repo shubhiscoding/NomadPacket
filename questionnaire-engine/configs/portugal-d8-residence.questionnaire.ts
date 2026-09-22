@@ -98,6 +98,14 @@ export const portugalD8ResidenceQuestionnaire: QuestionnaireConfig = {
           required: false,
         },
         {
+          id: "employmentStartDate",
+          section: "B",
+          label: "Employment start date",
+          fieldType: "date",
+          required: true,
+          visibleWhen: { questionId: "employmentType", equals: "employee" },
+        },
+        {
           id: "employerOrClientNames",
           section: "B",
           label: "Employer name",

@@ -17,6 +17,7 @@ export type QuestionId =
   // Section B — Work & income
   | "employmentType"
   | "jobTitle"
+  | "employmentStartDate"
   | "employerOrClientNames"
   | "monthlyIncome"
   | "incomeCurrency"
