@@ -148,8 +148,8 @@ describe("isQuestionnaireComplete — full happy-path fixtures", () => {
     intendedMoveDate: "2099-06-01",
   };
 
-  it("is complete for an employee once employerOrClientNames is set", () => {
-    const answers: Answers = { ...baseAnswers, employmentType: "employee", employerOrClientNames: "Acme Inc" };
+  it("is complete for an employee once employerOrClientNames and employmentStartDate are set", () => {
+    const answers: Answers = { ...baseAnswers, employmentType: "employee", employerOrClientNames: "Acme Inc", employmentStartDate: "2020-01-15" };
     expect(isQuestionnaireComplete(portugalD8ResidenceQuestionnaire, answers)).toBe(true);
   });
 
@@ -175,6 +175,7 @@ describe("isQuestionnaireComplete — full happy-path fixtures", () => {
       ...baseAnswers,
       employmentType: "employee",
       employerOrClientNames: "Acme Inc",
+      employmentStartDate: "2020-01-15",
       hasDependents: true,
       dependentsSpouseIncluded: true,
       // dependentsChildrenCount deliberately omitted

@@ -135,14 +135,11 @@ export function mapAnswersToEmployerConfirmationData(answers: Answers): Employer
     // with every other document; only falls back to the literal bracket
     // (for HR to fill in) when there's truly nothing to work with.
     jobTitle: str(answers.jobTitle, "[job title]"),
-    startDate: "[start date]",
+    startDate: formatDate(answers.employmentStartDate),
     remoteDescriptor: "remote",
     pronounSubject: "They",
+    pronounSubjectLowercase: "they",
     pronounPossessive: "their",
-    // "is" for he/she, "are" for they — always "are" today since gender
-    // isn't collected and "they" is the only pronoun set ever used, but
-    // kept as its own field (not hardcoded in the template) so the
-    // grammar stays correct if a gendered pronoun set is ever wired in.
     pronounVerb: "are",
     amountAndCurrency: formatCurrency(
       Number(answers.monthlyIncome ?? 0),

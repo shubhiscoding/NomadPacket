@@ -10,6 +10,7 @@
     "passportExpiry": "2099-01-01",
     "employmentType": "employee",
     "employerOrClientNames": "Acme Inc",
+    "employmentStartDate": "2020-01-15",
     "monthlyIncome": 5000,
     "incomeCurrency": "USD",
     "incomeStabilityMonths": 12,
