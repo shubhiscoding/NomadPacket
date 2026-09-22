@@ -162,6 +162,16 @@ model Application {
   payments           Payment[]
 
   @@index([userId])
+  // A user can have at most one non-PAID ("draft") application at a
+  // time — enforced as a real DB constraint, not just careful app code,
+  // because app-level care wasn't enough: a single "Fill new form"
+  // click reproducibly created two draft rows (Next.js dev double-
+  // invoking the page's render, which does the delete+create as a side
+  // effect — see app/application/page.tsx). Prisma's schema DSL can't
+  // express a partial unique index, so this is added by hand in the
+  // migration SQL (prisma/migrations/.../migration.sql) rather than
+  // generated from this file — documented here so it isn't a surprise.
+  // Postgres: CREATE UNIQUE INDEX ... ON applications (user_id) WHERE status != 'PAID'
   @@map("applications")
 }
 

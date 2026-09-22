@@ -1,10 +1,6 @@
-import { prisma } from "@/lib/prisma";
 import { resolveConfigValue } from "@/lib/config-resolver";
 import { CountryConfigKey } from "@/country-config/types";
-import type {
-  CriminalRecordBranchInstructions,
-  EligibilityMonthlyIncomeThreshold,
-} from "@/country-config/types";
+import type { EligibilityMonthlyIncomeThreshold } from "@/country-config/types";
 import { splitFullName } from "./form-fill/derive-overlay-values";
 import type { Answers } from "@/questionnaire-engine/types";
 import {
@@ -45,13 +41,18 @@ const OCCUPATION_LABELS: Record<string, string> = {
  * Reuses the same mapper functions and CountryConfig resolution as
  * document-engine/generate-packet.ts so the data shown here always
  * matches what actually gets generated.
+ *
+ * Takes the application + homeCountryLabel as params rather than
+ * re-fetching them: the one caller (checklist/page.tsx) already loads
+ * the Application row and resolves the exact same
+ * CriminalRecordBranchInstructions config (for its own Bucket-3 display)
+ * a few lines earlier — re-fetching both here was two fully redundant DB
+ * round trips on every single checklist page load.
  */
 export async function getDocumentPreviewData(
-  applicationId: string,
+  application: { id: string; country: string; visaType: string; answers: unknown },
+  homeCountryLabel: string,
 ): Promise<Partial<Record<DocumentType, DocumentPreviewSection>>> {
-  const application = await prisma.application.findUniqueOrThrow({
-    where: { id: applicationId },
-  });
   const answers = application.answers as Answers;
 
   const thresholdResult = await resolveConfigValue<EligibilityMonthlyIncomeThreshold>({
@@ -59,15 +60,6 @@ export async function getDocumentPreviewData(
     visaType: application.visaType,
     key: CountryConfigKey.EligibilityMonthlyIncomeThreshold,
   });
-
-  const nationality = String(answers.nationality ?? "");
-  const criminalRecordResult = await resolveConfigValue<CriminalRecordBranchInstructions>({
-    country: application.country,
-    visaType: application.visaType,
-    homeCountry: nationality,
-    key: CountryConfigKey.BranchCriminalRecordInstructions,
-  });
-  const homeCountryLabel = criminalRecordResult?.value.homeCountryLabel ?? nationality;
 
   const sections: Partial<Record<DocumentType, DocumentPreviewSection>> = {};
 

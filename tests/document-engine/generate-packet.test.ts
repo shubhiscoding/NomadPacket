@@ -7,6 +7,12 @@ import employeeUsFixture from "../fixtures/us-employee-residence.json";
 import businessCaDependentsFixture from "../fixtures/ca-business-owner-dependents.json";
 
 const TEST_EMAIL = "generate-packet-test@example.com";
+// A separate user for the business_owner fixture — one user can only
+// have one non-PAID application at a time (DB constraint, see
+// prisma/migrations/20260922150000_one_draft_application_per_user), and
+// TEST_EMAIL's first application needs to stay alive (unpaid) for the
+// "regenerating" test below.
+const SECOND_TEST_EMAIL = "generate-packet-test-2@example.com";
 let applicationId: string;
 let secondApplicationId: string;
 
@@ -19,13 +25,15 @@ beforeAll(() => {
 });
 
 afterAll(async () => {
-  const user = await prisma.user.findUnique({ where: { email: TEST_EMAIL } });
-  if (user) {
-    await prisma.generatedDocument.deleteMany({
-      where: { application: { userId: user.id } },
-    });
-    await prisma.application.deleteMany({ where: { userId: user.id } });
-    await prisma.user.delete({ where: { id: user.id } });
+  for (const email of [TEST_EMAIL, SECOND_TEST_EMAIL]) {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (user) {
+      await prisma.generatedDocument.deleteMany({
+        where: { application: { userId: user.id } },
+      });
+      await prisma.application.deleteMany({ where: { userId: user.id } });
+      await prisma.user.delete({ where: { id: user.id } });
+    }
   }
   await prisma.$disconnect();
 });
@@ -69,7 +77,11 @@ describe("generateApplicationDocuments", () => {
   });
 
   it("generates the freelancer narrative instead of the employer letter for a business_owner", async () => {
-    const user = await prisma.user.findUniqueOrThrow({ where: { email: TEST_EMAIL } });
+    const user = await prisma.user.upsert({
+      where: { email: SECOND_TEST_EMAIL },
+      create: { email: SECOND_TEST_EMAIL },
+      update: {},
+    });
     const application = await prisma.application.create({
       data: {
         userId: user.id,

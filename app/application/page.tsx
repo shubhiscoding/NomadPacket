@@ -5,6 +5,7 @@ import { GATE_CONTEXT_COOKIE_NAME, verifyGateContextCookieValue } from "@/lib/ga
 import { isSupported } from "@/country-config/qualifier-gate";
 import { prisma } from "@/lib/prisma";
 import { deleteDocument } from "@/lib/storage";
+import { createDraftApplicationSafely } from "@/lib/create-draft-application";
 
 /**
  * Entry point after sign-in — three distinct cases:
@@ -53,12 +54,10 @@ export default async function ApplicationEntryPage() {
 
   if (!mostRecent) {
     if (!gateValid) redirect("/start");
-    const application = await prisma.application.create({
-      data: {
-        userId: user.id,
-        country: gateContext!.country,
-        visaType: gateContext!.visaType,
-      },
+    const application = await createDraftApplicationSafely({
+      userId: user.id,
+      country: gateContext!.country,
+      visaType: gateContext!.visaType,
     });
     redirect(`/application/${application.id}/questionnaire`);
   }
@@ -68,6 +67,8 @@ export default async function ApplicationEntryPage() {
       where: { userId: user.id, status: { not: "PAID" } },
       include: { generatedDocuments: true },
     });
+    // Storage-file deletion is a best-effort external side effect (blob/
+    // filesystem), not a DB op — can't live inside the transaction below.
     for (const draft of drafts) {
       await Promise.all(draft.generatedDocuments.map((doc) => deleteDocument(doc.fileUrl)));
     }
@@ -75,12 +76,10 @@ export default async function ApplicationEntryPage() {
       where: { id: { in: drafts.map((draft) => draft.id) } },
     });
 
-    const application = await prisma.application.create({
-      data: {
-        userId: user.id,
-        country: gateContext!.country,
-        visaType: gateContext!.visaType,
-      },
+    const application = await createDraftApplicationSafely({
+      userId: user.id,
+      country: gateContext!.country,
+      visaType: gateContext!.visaType,
     });
     redirect(`/application/${application.id}/questionnaire`);
   }

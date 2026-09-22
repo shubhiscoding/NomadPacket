@@ -12,8 +12,17 @@ import { getCurrentUser } from "@/auth/current-user";
 
 const TEST_EMAIL = "applications-route-test@example.com";
 
-beforeEach(() => {
+beforeEach(async () => {
   vi.mocked(getCurrentUser).mockReset();
+  // Several tests below call POST /api/applications for the same reused
+  // TEST_EMAIL user — each creates a new non-PAID application, which
+  // now violates the DB's "one draft per user" constraint (see
+  // prisma/migrations/20260922150000_one_draft_application_per_user)
+  // unless the previous test's draft is cleared first.
+  const user = await prisma.user.findUnique({ where: { email: TEST_EMAIL } });
+  if (user) {
+    await prisma.application.deleteMany({ where: { userId: user.id } });
+  }
 });
 
 afterAll(async () => {

@@ -117,8 +117,14 @@ describe("GET /api/documents/[id]/download", () => {
 
   it("returns 409 for an application with no generated documents yet", async () => {
     vi.mocked(getCurrentUser).mockResolvedValue(testUser);
+    // status: "PAID" here too (not just the Payment row below) — testUser
+    // already has a non-PAID application from beforeAll, and the DB now
+    // enforces at most one non-PAID application per user (see
+    // prisma/migrations/20260922150000_one_draft_application_per_user).
+    // This also makes the "Paid but never generated" comment below
+    // actually true at the Application level, not just the Payment level.
     const emptyApplication = await prisma.application.create({
-      data: { userId: testUser.id, country: "PT", visaType: "D8_RESIDENCE" },
+      data: { userId: testUser.id, country: "PT", visaType: "D8_RESIDENCE", status: "PAID" },
     });
     // Paid but never generated — isolates the "no documents" 409 path from
     // the entitlement check, which runs first in the route.
