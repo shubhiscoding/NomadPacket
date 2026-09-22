@@ -90,14 +90,59 @@ export async function getDocumentPreviewData(
     };
   } else {
     const freelancer = mapAnswersToFreelancerNarrativeData(answers, { homeCountryLabel });
+
+    const narrativeFields: DocumentPreviewField[] = [];
+    const employmentType = String(answers.employmentType ?? "");
+
+    if (employmentType === "freelancer") {
+      const freelancerClientBase = String(answers.freelancerClientBase ?? "");
+      narrativeFields.push({ label: "Client type", value: freelancerClientBase === "many_unnamed" ? "Multiple clients" : "Few named clients" });
+
+      if (freelancerClientBase === "many_unnamed") {
+        narrativeFields.push({ label: "Approximate client count", value: String(answers.freelancerClientCount ?? "") });
+        narrativeFields.push({ label: "Client platforms", value: String(answers.freelancerClientPlatforms ?? "") });
+        if (answers.freelancerNotableClients) {
+          narrativeFields.push({ label: "Notable clients", value: String(answers.freelancerNotableClients) });
+        }
+      } else {
+        narrativeFields.push({ label: "Clients", value: String(answers.employerOrClientNames ?? "") });
+      }
+    } else if (employmentType === "business_owner") {
+      const businessIncomeType = String(answers.businessIncomeType ?? "");
+      narrativeFields.push({ label: "Business model", value: businessIncomeType });
+      narrativeFields.push({ label: "Registered entity?", value: answers.businessIsRegisteredEntity ? "Yes" : "No" });
+
+      if (answers.businessIsRegisteredEntity && answers.businessRegisteredCountry) {
+        narrativeFields.push({ label: "Registered in", value: String(answers.businessRegisteredCountry) });
+      }
+
+      if (businessIncomeType === "product_revenue") {
+        narrativeFields.push({ label: "Product", value: String(answers.businessProductDescription ?? "") });
+        narrativeFields.push({ label: "Customer count", value: String(answers.businessCustomerCount ?? "") });
+        narrativeFields.push({ label: "Revenue model", value: String(answers.businessRevenueModel ?? "") });
+      } else if (businessIncomeType === "creator_revenue") {
+        narrativeFields.push({ label: "Platforms", value: String(answers.creatorPlatforms ?? "") });
+        narrativeFields.push({ label: "Income type", value: String(answers.creatorIncomeType ?? "") });
+      } else if (businessIncomeType === "other") {
+        narrativeFields.push({ label: "Description", value: String(answers.businessOtherDescription ?? "") });
+        narrativeFields.push({ label: "⚠️ Review required", value: "Please review the narrative before submission" });
+      } else if (businessIncomeType === "few_clients") {
+        narrativeFields.push({ label: "Clients", value: String(answers.employerOrClientNames ?? "") });
+      } else if (businessIncomeType === "many_clients") {
+        narrativeFields.push({ label: "Approximate client count", value: String(answers.freelancerClientCount ?? "") });
+        narrativeFields.push({ label: "Client platforms", value: String(answers.freelancerClientPlatforms ?? "") });
+        if (answers.freelancerNotableClients) {
+          narrativeFields.push({ label: "Notable clients", value: String(answers.freelancerNotableClients) });
+        }
+      }
+    }
+
+    narrativeFields.push({ label: "Income stability", value: `${String(answers.incomeStabilityMonths ?? "0")} months` });
+    narrativeFields.push({ label: "Average monthly income", value: motivation.incomeAmountFormatted });
+
     sections.FREELANCER_INCOME_NARRATIVE = {
       title: "Freelancer / business income narrative",
-      fields: [
-        { label: "Role", value: freelancer.roleDescriptor },
-        { label: "Clients", value: freelancer.clientNamesOrTypes },
-        { label: "Income stability", value: freelancer.stabilityMonths },
-        { label: "Average monthly income", value: freelancer.averageMonthlyIncomeFormatted },
-      ],
+      fields: narrativeFields,
     };
   }
 

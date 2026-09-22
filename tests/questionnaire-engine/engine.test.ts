@@ -55,24 +55,40 @@ describe("evaluateBranch", () => {
 });
 
 describe("employment-type branch (Portugal D8 questionnaire)", () => {
-  it("shows the employer question only for employees, not freelancers/business owners", () => {
+  it("shows the employer question only for employees", () => {
     const employeeAnswers: Answers = { employmentType: "employee" };
     const employeeVisible = getVisibleQuestions(portugalD8ResidenceQuestionnaire, employeeAnswers);
     const employerQuestion = employeeVisible.find(
       (q) => q.id === "employerOrClientNames" && q.label === "Employer name",
     );
     expect(employerQuestion).toBeDefined();
+  });
 
+  it("shows client-base branch for freelancers, with client names shown only after selecting few_named", () => {
     const freelancerAnswers: Answers = { employmentType: "freelancer" };
     const freelancerVisible = getVisibleQuestions(
       portugalD8ResidenceQuestionnaire,
       freelancerAnswers,
     );
-    expect(
-      freelancerVisible.find((q) => q.id === "employerOrClientNames" && q.label === "Employer name"),
-    ).toBeUndefined();
+    // Client names should not be visible yet (freelancerClientBase not set)
     expect(
       freelancerVisible.find(
+        (q) => q.id === "employerOrClientNames" && q.label.startsWith("Client names"),
+      ),
+    ).toBeUndefined();
+    // But freelancerClientBase should be visible
+    expect(
+      freelancerVisible.find((q) => q.id === "freelancerClientBase"),
+    ).toBeDefined();
+
+    // After selecting few_named, client names should appear
+    const freelancerFewNamed: Answers = { employmentType: "freelancer", freelancerClientBase: "few_named" };
+    const freelancerFewNamedVisible = getVisibleQuestions(
+      portugalD8ResidenceQuestionnaire,
+      freelancerFewNamed,
+    );
+    expect(
+      freelancerFewNamedVisible.find(
         (q) => q.id === "employerOrClientNames" && q.label.startsWith("Client names"),
       ),
     ).toBeDefined();
@@ -148,20 +164,56 @@ describe("isQuestionnaireComplete — full happy-path fixtures", () => {
     intendedMoveDate: "2099-06-01",
   };
 
-  it("is complete for an employee once employerOrClientNames and employmentStartDate are set", () => {
-    const answers: Answers = { ...baseAnswers, employmentType: "employee", employerOrClientNames: "Acme Inc", employmentStartDate: "2020-01-15" };
+  it("is complete for an employee once all required fields including hasChangedEmployerRecently are set", () => {
+    const answers: Answers = {
+      ...baseAnswers,
+      employmentType: "employee",
+      hasChangedEmployerRecently: false,
+      employerOrClientNames: "Acme Inc",
+      employmentStartDate: "2020-01-15",
+    };
     expect(isQuestionnaireComplete(portugalD8ResidenceQuestionnaire, answers)).toBe(true);
   });
 
-  it("is complete for a freelancer once employerOrClientNames is set", () => {
-    const answers: Answers = { ...baseAnswers, employmentType: "freelancer", employerOrClientNames: "Various clients" };
+  it("is complete for a freelancer with few named clients once freelancerClientBase and employerOrClientNames are set", () => {
+    const answers: Answers = {
+      ...baseAnswers,
+      employmentType: "freelancer",
+      freelancerClientBase: "few_named",
+      employerOrClientNames: "Acme Corp, TechCo",
+    };
     expect(isQuestionnaireComplete(portugalD8ResidenceQuestionnaire, answers)).toBe(true);
   });
 
-  it("is complete for a business owner with dependents once all dependents fields are set", () => {
+  it("is complete for a freelancer with many unnamed clients once freelancerClientBase, count, and platforms are set", () => {
+    const answers: Answers = {
+      ...baseAnswers,
+      employmentType: "freelancer",
+      freelancerClientBase: "many_unnamed",
+      freelancerClientCount: 15,
+      freelancerClientPlatforms: "Upwork, direct referrals",
+    };
+    expect(isQuestionnaireComplete(portugalD8ResidenceQuestionnaire, answers)).toBe(true);
+  });
+
+  it("is complete for a business owner with few clients once businessIncomeType, businessIsRegisteredEntity, and employerOrClientNames are set", () => {
     const answers: Answers = {
       ...baseAnswers,
       employmentType: "business_owner",
+      businessIncomeType: "few_clients",
+      businessIsRegisteredEntity: false,
+      employerOrClientNames: "My Consulting LLC",
+    };
+    expect(isQuestionnaireComplete(portugalD8ResidenceQuestionnaire, answers)).toBe(true);
+  });
+
+  it("is complete for a business owner with dependents once all fields including businessIncomeType are set", () => {
+    const answers: Answers = {
+      ...baseAnswers,
+      employmentType: "business_owner",
+      businessIncomeType: "few_clients",
+      businessIsRegisteredEntity: true,
+      businessRegisteredCountry: "Ireland",
       employerOrClientNames: "My Consulting LLC",
       hasDependents: true,
       dependentsSpouseIncluded: true,
@@ -170,7 +222,7 @@ describe("isQuestionnaireComplete — full happy-path fixtures", () => {
     expect(isQuestionnaireComplete(portugalD8ResidenceQuestionnaire, answers)).toBe(true);
   });
 
-  it("is incomplete if a dependents sub-question is missing", () => {
+  it("is incomplete if a required dependents sub-question is missing", () => {
     const answers: Answers = {
       ...baseAnswers,
       employmentType: "employee",
@@ -179,6 +231,27 @@ describe("isQuestionnaireComplete — full happy-path fixtures", () => {
       hasDependents: true,
       dependentsSpouseIncluded: true,
       // dependentsChildrenCount deliberately omitted
+    };
+    expect(isQuestionnaireComplete(portugalD8ResidenceQuestionnaire, answers)).toBe(false);
+  });
+
+  it("is incomplete for a freelancer without freelancerClientBase", () => {
+    const answers: Answers = {
+      ...baseAnswers,
+      employmentType: "freelancer",
+      // freelancerClientBase deliberately omitted
+      employerOrClientNames: "Various clients",
+    };
+    expect(isQuestionnaireComplete(portugalD8ResidenceQuestionnaire, answers)).toBe(false);
+  });
+
+  it("is incomplete for a business owner without businessIncomeType", () => {
+    const answers: Answers = {
+      ...baseAnswers,
+      employmentType: "business_owner",
+      // businessIncomeType deliberately omitted
+      businessIsRegisteredEntity: false,
+      employerOrClientNames: "My Business",
     };
     expect(isQuestionnaireComplete(portugalD8ResidenceQuestionnaire, answers)).toBe(false);
   });

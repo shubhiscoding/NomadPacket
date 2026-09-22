@@ -14,11 +14,13 @@ export function FreelancerNarrativePdf({ data }: { data: FreelancerNarrativeData
   return (
     <Document>
       <Page size="A4" style={pdfStyles.page}>
-        {paragraphs.map((paragraph, i) => (
-          <Text key={i} style={pdfStyles.paragraph}>
-            {paragraph}
-          </Text>
-        ))}
+        {paragraphs
+          .filter((p) => p.trim().length > 0)
+          .map((paragraph, i) => (
+            <Text key={i} style={pdfStyles.paragraph}>
+              {paragraph}
+            </Text>
+          ))}
       </Page>
     </Document>
   );

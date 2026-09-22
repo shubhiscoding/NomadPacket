@@ -9,6 +9,7 @@
     "passportNumber": "GB9876543",
     "passportExpiry": "2098-06-15",
     "employmentType": "freelancer",
+    "freelancerClientBase": "few_named",
     "employerOrClientNames": "several UK and EU design agencies",
     "monthlyIncome": 4200,
     "incomeCurrency": "GBP",
