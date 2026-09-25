@@ -137,9 +137,9 @@ describe("mapAnswersToEmployerConfirmationData", () => {
     expect(data.jobTitle).toBe("Senior Product Designer");
   });
 
-  it("falls back to a literal bracket placeholder (for HR to fill in) only when jobTitle is truly missing", () => {
+  it("falls back to 'Professional' when jobTitle is missing", () => {
     const data = mapAnswersToEmployerConfirmationData(employeeUsFixture.answers as Answers);
-    expect(data.jobTitle).toBe("[job title]");
+    expect(data.jobTitle).toBe("Professional");
   });
 });
 
