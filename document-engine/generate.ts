@@ -28,7 +28,7 @@ function formatCurrency(amount: number, currency: string): string {
 }
 
 function formatDate(value: string | number | boolean | undefined): string {
-  if (typeof value !== "string" || !value) return "[date not provided]";
+  if (typeof value !== "string" || !value) return "date to be confirmed";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return date.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
@@ -68,7 +68,7 @@ function resolveFreelancerClientDescription(answers: Answers): {
   }
 
   // Default: few_named or unset
-  const clientNames = str(answers.employerOrClientNames, "[clients not provided]");
+  const clientNames = str(answers.employerOrClientNames, "select independent clients");
   return {
     introClientClause: `clients located outside Portugal, including ${clientNames}`,
     incomeSourceLabel: clientNames,
@@ -98,8 +98,8 @@ function resolveEmployerHistory(answers: Answers): {
   const hasChangedEmployer = answers.hasChangedEmployerRecently === true;
 
   const current: EmployerRecord = {
-    companyName: str(answers.employerOrClientNames, "[employer name not provided]"),
-    jobTitle: str(answers.jobTitle, "[job title]"),
+    companyName: str(answers.employerOrClientNames, "your current employer"),
+    jobTitle: str(answers.jobTitle, "Professional"),
     startDate: new Date(str(answers.employmentStartDate, "2024-01-01")),
     endDate: null,
     monthlyIncome: Number(answers.monthlyIncome ?? 0),
@@ -116,7 +116,7 @@ function resolveEmployerHistory(answers: Answers): {
   }
 
   const previous: EmployerRecord = {
-    companyName: str(answers.previousEmployerName, "[previous employer name not provided]"),
+    companyName: str(answers.previousEmployerName, "your previous employer"),
     jobTitle: str(answers.previousEmployerJobTitle, ""),
     startDate: new Date(str(answers.previousEmployerStartDate, "2024-01-01")),
     endDate: new Date(str(answers.previousEmployerEndDate, "2024-06-01")),
@@ -205,11 +205,9 @@ function resolveBusinessNarrativeVariant(answers: Answers): {
   reviewWarning: string;
 } {
   const businessIncomeType = str(answers.businessIncomeType);
-  const roleDescriptor = GENERIC_ROLE_BY_EMPLOYMENT_TYPE["business_owner"];
 
   if (businessIncomeType === "few_clients") {
-    // Today's existing wording — unchanged
-    const clientNames = str(answers.employerOrClientNames, "[clients not provided]");
+    const clientNames = str(answers.employerOrClientNames, "select international clients");
     const stabilityMonths = str(answers.incomeStabilityMonths, "0");
     const avgIncome = formatCurrency(
       Number(answers.monthlyIncome ?? 0),
@@ -217,7 +215,7 @@ function resolveBusinessNarrativeVariant(answers: Answers): {
     );
 
     return {
-      introParagraph: `I, {{fullName}}, operate as an independent ${roleDescriptor}. My income is derived from clients located outside Portugal, including ${clientNames}.`,
+      introParagraph: `I, {{fullName}}, operate as a business owner. My income is derived from clients located outside Portugal, including ${clientNames}.`,
       incomeParagraph: `Over the past ${stabilityMonths} months, my average monthly income has been ${avgIncome}, as evidenced by the attached bank statements, invoices, and client contracts. My work is conducted entirely online and does not depend on physical presence in any single location, allowing me to continue serving my clients while residing in Portugal.`,
       incomeSourceLabel: clientNames,
       reviewWarning: "",
@@ -234,8 +232,8 @@ function resolveBusinessNarrativeVariant(answers: Answers): {
     );
 
     return {
-      introParagraph: `I, {{fullName}}, operate as an independent ${roleDescriptor}. My income is derived from ${freelancerDesc.introClientClause}.`,
-      incomeParagraph: `Over the past ${stabilityMonths} months, my average monthly income has been ${avgIncome}, as evidenced by the attached bank statements, invoices, and client contracts. My work is conducted entirely online and does not depend on physical presence in any single location, allowing me to continue serving my clients while residing in Portugal.`,
+      introParagraph: `I, {{fullName}}, operate as a business owner. My income is derived from ${freelancerDesc.introClientClause}.`,
+      incomeParagraph: `Over the past ${stabilityMonths} months, my average monthly income has been ${avgIncome}, as evidenced by the attached bank statements, invoices, and client contracts. My business serves clients located outside Portugal and does not depend on physical presence in any single location, allowing me to continue serving clients while residing in Portugal.`,
       incomeSourceLabel: freelancerDesc.incomeSourceLabel,
       reviewWarning: "",
     };
@@ -243,7 +241,7 @@ function resolveBusinessNarrativeVariant(answers: Answers): {
 
   if (businessIncomeType === "product_revenue") {
     // SaaS/product revenue narrative
-    const productDesc = str(answers.businessProductDescription, "[product description not provided]");
+    const productDesc = str(answers.businessProductDescription, "digital products or services");
     const customerCount = answers.businessCustomerCount ?? "multiple";
     const revenueModel = str(answers.businessRevenueModel, "subscription");
     const isRegistered = answers.businessIsRegisteredEntity === true;
@@ -256,7 +254,7 @@ function resolveBusinessNarrativeVariant(answers: Answers): {
     );
 
     return {
-      introParagraph: `I, {{fullName}}, operate as an independent ${roleDescriptor} developing and selling a digital product${registrationNote}. My business is a ${revenueModel}-based model serving approximately ${customerCount} customers outside Portugal.`,
+      introParagraph: `I, {{fullName}}, operate a business developing and selling a digital product${registrationNote}. My business is a ${revenueModel}-based model serving approximately ${customerCount} customers outside Portugal.`,
       incomeParagraph: `Over the past ${stabilityMonths} months, my average monthly revenue has been ${avgIncome}, as documented by bank statements and payment processor records. My product is offered globally and does not depend on physical presence in any single location, allowing me to operate the business while residing in Portugal.`,
       incomeSourceLabel: `Product revenue (${revenueModel})`,
       reviewWarning: "",
@@ -265,7 +263,7 @@ function resolveBusinessNarrativeVariant(answers: Answers): {
 
   if (businessIncomeType === "creator_revenue") {
     // Content creator narrative
-    const platforms = str(answers.creatorPlatforms, "[platforms not provided]");
+    const platforms = str(answers.creatorPlatforms, "various platforms");
     const incomeType = str(answers.creatorIncomeType, "mixed");
     const stabilityMonths = str(answers.incomeStabilityMonths, "0");
     const avgIncome = formatCurrency(
@@ -282,7 +280,11 @@ function resolveBusinessNarrativeVariant(answers: Answers): {
   }
 
   // Feature C — other/fallback: no invented specifics, warning flag for review
-  const otherDesc = str(answers.businessOtherDescription, "[business description not provided]");
+  const rawDesc = str(answers.businessOtherDescription, "business services");
+  // Add article if missing: check if starts with vowel sound → "an", else "a"
+  const needsArticle = !rawDesc.match(/^(a|an)\s/i);
+  const article = needsArticle ? (rawDesc.match(/^[aeiouAEIOU]/) ? "an" : "a") : "";
+  const otherDesc = article ? `${article} ${rawDesc}` : rawDesc;
   const stabilityMonths = str(answers.incomeStabilityMonths, "0");
   const avgIncome = formatCurrency(
     Number(answers.monthlyIncome ?? 0),
@@ -338,7 +340,7 @@ export function mapAnswersToMotivationLetterData(
     employerOrClient = history.current.companyName;
     employmentDescriptor = `at ${employerOrClient}`;
   } else {
-    employerOrClient = str(answers.employerOrClientNames, "[employer/clients not provided]");
+    employerOrClient = str(answers.employerOrClientNames, "various clients");
     employmentDescriptor = `as an independent freelancer/contractor serving clients including ${employerOrClient}`;
   }
 
@@ -372,7 +374,7 @@ export function mapAnswersToMotivationLetterData(
 
   return {
     homeCountry: opts.homeCountryLabel,
-    fullName: str(answers.fullLegalName, "[full name not provided]"),
+    fullName: str(answers.fullLegalName, "Applicant"),
     nationality: opts.homeCountryLabel,
     residingLocation,
     visaFlavorLabel: "Residence",
@@ -384,9 +386,23 @@ export function mapAnswersToMotivationLetterData(
     incomeAmountFormatted,
     // Falls back to a neutral, non-presumptuous statement when the
     // optional free-text field is blank — never fabricates a specific
-    // personal reason.
-    personalReason:
-      str(answers.personalReason) || "its quality of life and welcoming community",
+    // personal reason. Sanitizes by stripping leading "I " from full sentences,
+    // trailing punctuation, and lowercasing the first character. The template
+    // uses "because" instead of "for" which works for both noun phrases
+    // ("because its quality of life") and verb phrases ("because love the culture").
+    personalReason: (() => {
+      const provided = str(answers.personalReason);
+      if (!provided) return "its quality of life and welcoming community";
+      // Strip leading "I " or "I'" (common start to full sentences)
+      let sanitized = provided.replace(/^I\s+/i, "").replace(/^I'/i, "");
+      // Strip trailing punctuation
+      sanitized = sanitized.replace(/[.!?]\s*$/, "");
+      // Lowercase first character (works for both user input and dropdown values)
+      if (sanitized.length > 0) {
+        sanitized = sanitized[0].toLowerCase() + sanitized.slice(1);
+      }
+      return sanitized || provided;
+    })(),
     date: new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }),
   };
 }
@@ -405,7 +421,7 @@ export function mapAnswersToEmployerConfirmationData(answers: Answers): Employer
 
   return {
     companyName: current.companyName,
-    employeeFullName: str(answers.fullLegalName, "[full name not provided]"),
+    employeeFullName: str(answers.fullLegalName, "Applicant"),
     jobTitle: current.jobTitle || str(answers.jobTitle, "[job title]"),
     startDate: formatDate(current.startDate.toISOString()),
     remoteDescriptor: "remote",
@@ -423,6 +439,7 @@ export function mapAnswersToFreelancerNarrativeData(
   opts: { homeCountryLabel: string },
 ): FreelancerNarrativeData {
   const employmentType = str(answers.employmentType);
+  const fullName = str(answers.fullLegalName, "Applicant");
 
   let introParagraph = "";
   let incomeParagraph = "";
@@ -437,19 +454,19 @@ export function mapAnswersToFreelancerNarrativeData(
       str(answers.incomeCurrency, "USD"),
     );
 
-    introParagraph = `I, {{fullName}}, operate as an independent freelancer. My income is derived from ${clientDesc.introClientClause}.`;
+    introParagraph = `I, ${fullName}, operate as an independent freelancer. My income is derived from ${clientDesc.introClientClause}.`;
     incomeParagraph = `Over the past ${stabilityMonths} months, my average monthly income has been ${avgIncome}, as evidenced by the attached bank statements, invoices, and client contracts. My work is conducted entirely online and does not depend on physical presence in any single location, allowing me to continue serving my clients while residing in Portugal.`;
   } else if (employmentType === "business_owner") {
     // Feature C — business owner branch
     const variant = resolveBusinessNarrativeVariant(answers);
-    introParagraph = variant.introParagraph;
+    introParagraph = variant.introParagraph.replace("{{fullName}}", fullName);
     incomeParagraph = variant.incomeParagraph;
     reviewWarning = variant.reviewWarning || "";
   }
 
   return {
     homeCountry: opts.homeCountryLabel,
-    fullName: str(answers.fullLegalName, "[full name not provided]"),
+    fullName,
     introParagraph,
     incomeParagraph,
     reviewWarning: reviewWarning || undefined,
