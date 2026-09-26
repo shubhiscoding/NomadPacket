@@ -27,26 +27,29 @@ export const portugalD8ResidenceConfig = {
       key: CountryConfigKey.EligibilityMonthlyIncomeThreshold,
       value: monthlyIncomeThreshold2026,
       sourceUrl:
-        "https://www.vfsglobal.com/one-pager/portugal/usa/english/pdf/Digital-Nomad-Checklist.pdf",
+        "https://portugal.gov.pt/en/gc25/communication/news/government-increases-minimum-wage-to-920-euros-in-2026",
       sourceNote:
-        "€3,680 = 4x Portugal's 2026 minimum wage (RMMG). Cross-checked " +
-        "against VFS Global's own D8/digital-nomad checklist (Portugal's " +
-        "official outsourced visa partner), which states the requirement as " +
-        "4x RMMG and cites Portaria n.º 1563/2007, retrieved 2026-09-20. The " +
-        "exact euro figure isn't stated verbatim in any one document — it's " +
-        "computed from the current RMMG, set by a separate annual decree.",
+        "Portugal's government announced a 2026 RMMG of €920, effective from " +
+        "1 January 2026. The D8 threshold is €3,680, computed as 4x that RMMG; " +
+        "the exact D8 figure is not stated verbatim in the government announcement. " +
+        "The official MNE visa portal classifies the target path as a residency " +
+        "visa for professional activity done remotely. Do not use the VFS " +
+        "Digital-Nomad-Checklist.pdf currently linked in older notes as residence " +
+        "evidence: its live text identifies it as a temporary-stay checklist.",
     },
     {
       key: CountryConfigKey.EligibilityDependentsIncomeAddition,
       value: dependentsIncomeAddition2026,
       sourceUrl:
-        "https://vistos.mne.gov.pt/images/schengen/portaria1563_2007_meios_de_subsist.pdf",
+        "https://vistos.mne.gov.pt/en/national-visas/necessary-documentation/means-of-subsistence",
       sourceNote:
-        "Portaria n.º 1563/2007, de 11 de Dezembro, Art. 2.º §2 (applied to " +
-        "residence visas via Art. 5.º) — primary government legal source, " +
-        "read in full 2026-09-20. Confirms the base is the RMMG (minimum " +
-        "wage), resolving the earlier MINIMUM_WAGE-vs-D8_THRESHOLD ambiguity. " +
-        "See country-config/portugal/eligibility.ts.",
+        "Portugal's official MNE means-of-subsistence page states that long-term " +
+        "visa means are based on the 2026 minimum monthly salary of €920, with " +
+        "100% for the first adult, 50% for a second/additional adult, and 30% " +
+        "for children and dependent children. Retrieved 2026-09-26. The D8 " +
+        "primary-applicant €3,680 threshold remains a separate 4x-RMMG product " +
+        "rule; dependent additions use the MNE per-capita percentages against " +
+        "the €920 RMMG.",
     },
     {
       key: CountryConfigKey.EligibilitySavingsBufferGuideline,
@@ -64,11 +67,12 @@ export const portugalD8ResidenceConfig = {
     {
       key: CountryConfigKey.FormFillNationalVisaFormMapping,
       value: nationalVisaFormFieldMapping,
-      sourceUrl: "PENDING-SOURCE",
+      sourceUrl: "https://vistos.mne.gov.pt/images/formulario_visto_nacional_pt.pdf",
       sourceNote:
-        "STUB — see document-engine/form-fill/README.md and the TODO in " +
-        "document-engine/form-fill/mappings/pt-d8-national-visa-form.mapping.ts. " +
-        "Not sourced from the real official Portuguese visa form.",
+        "Real Portuguese national visa form, cross-checked against the VFS Global " +
+        "Portugal form used by the mapping. Coordinate mapping is verified against " +
+        "the downloaded PDF; fields that are ambiguous or applicant-signature-only " +
+        "remain blank by design. See document-engine/form-fill/README.md.",
     },
   ],
   perHomeCountry: [

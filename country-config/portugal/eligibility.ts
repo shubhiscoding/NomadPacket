@@ -14,16 +14,14 @@ import type {
  * reads through lib/config-resolver.ts, never this file directly.
  *
  * Source: Product Spec (v1).md §1 ("Monthly income ≥ €3,680, pegged to 4×
- * Portugal's minimum wage"), cross-checked against 2026 immigration-advisory
- * publications on 2026-09-14, then against VFS Global's own official D8/
- * digital-nomad checklist (vfsglobal.com/one-pager/portugal/usa/english/pdf/
- * Digital-Nomad-Checklist.pdf, retrieved 2026-09-20) — which states the
- * requirement as "average monthly income ... minimum value equivalent to
- * four monthly minimum guaranty remuneration" and cites Portaria n.º
- * 1563/2007 as its legal basis, corroborating the 4x-RMMG formula directly
- * from Portugal's official visa-partner documentation. €3,680 itself is a
- * COMPUTED figure (4x the RMMG minimum wage, which the government sets by a
- * separate annual decree) rather than a number stated verbatim in any one
+ * Portugal's minimum wage"), cross-checked against Portugal's government
+ * announcement that the 2026 RMMG is €920, effective 2026-01-01:
+ * https://portugal.gov.pt/en/gc25/communication/news/
+ * government-increases-minimum-wage-to-920-euros-in-2026 (retrieved
+ * 2026-09-26). The official MNE visa portal separately lists the target path
+ * as a residency visa for professional activity done remotely. €3,680 itself
+ * is a COMPUTED figure (4x the RMMG minimum wage, which the government sets
+ * by a separate annual decree) rather than a number stated verbatim in one
  * document — re-verify the current RMMG and recompute each January.
  */
 export const monthlyIncomeThreshold2026: EligibilityMonthlyIncomeThreshold = {

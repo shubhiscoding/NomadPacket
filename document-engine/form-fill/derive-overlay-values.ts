@@ -5,8 +5,8 @@ import { getCountryName } from "@/lib/country-mapping";
  * Portugal's national visa form asks for Surname and First name(s) as
  * separate fields (1 and 3), but the questionnaire collects a single
  * `fullLegalName` string. This is a real content-shape mismatch surfaced
- * only once the actual government form was sourced — the stub's fake field
- * names hid it.
+ * against the actual government form — the mapping's field names make it
+ * easy to miss.
  *
  * Best-effort split: last space-separated token = surname, everything
  * before it = given name(s). This is a reasonable approximation, not a

@@ -39,7 +39,7 @@ afterAll(async () => {
 });
 
 describe("generateApplicationDocuments", () => {
-  it("generates all 4 documents for a US employee: motivation, employer confirmation, income summary, and the Bucket-2 stub form", async () => {
+  it("generates all 4 documents for a US employee: motivation, employer confirmation, income summary, and the national visa form prefill", async () => {
     const user = await prisma.user.upsert({
       where: { email: TEST_EMAIL },
       create: { email: TEST_EMAIL },

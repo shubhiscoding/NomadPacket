@@ -254,7 +254,7 @@ function resolveBusinessNarrativeVariant(answers: Answers): {
     );
 
     return {
-      introParagraph: `I, {{fullName}}, operate a business developing and selling a digital product${registrationNote}. My business is a ${revenueModel}-based model serving approximately ${customerCount} customers outside Portugal.`,
+      introParagraph: `I, {{fullName}}, operate a business developing and selling ${productDesc}${registrationNote}. My business is a ${revenueModel}-based model serving approximately ${customerCount} customers outside Portugal.`,
       incomeParagraph: `Over the past ${stabilityMonths} months, my average monthly revenue has been ${avgIncome}, as documented by bank statements and payment processor records. My product is offered globally and does not depend on physical presence in any single location, allowing me to operate the business while residing in Portugal.`,
       incomeSourceLabel: `Product revenue (${revenueModel})`,
       reviewWarning: "",
@@ -384,6 +384,9 @@ export function mapAnswersToMotivationLetterData(
     intendedMoveDate: formatDate(answers.intendedMoveDate),
     accommodationClause,
     incomeAmountFormatted,
+    healthInsuranceClause: answers.hasHealthInsurance
+      ? "I have arranged comprehensive health insurance valid in Portugal."
+      : "I will provide comprehensive health insurance valid in Portugal as required for this visa.",
     // Falls back to a neutral, non-presumptuous statement when the
     // optional free-text field is blank — never fabricates a specific
     // personal reason. Sanitizes by stripping leading "I " from full sentences,

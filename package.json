@@ -9,6 +9,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "dotenv -e .env.local -- vitest run",
+    "test:documents": "dotenv -e .env.local -- vitest run tests/document-engine",
     "test:watch": "dotenv -e .env.local -- vitest",
     "test:e2e": "playwright test",
     "db:migrate": "prisma migrate dev",
