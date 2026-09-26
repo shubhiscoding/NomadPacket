@@ -60,6 +60,13 @@ export default function PrivacyPage() {
             and navigation, via Vercel Analytics. This tracks that pages were visited, not
             the content of anything you type or any generated document.
           </li>
+          <li>
+            <strong className="text-stone-900">Marketing analytics:</strong> on public
+            marketing and resource pages only, Meta Pixel may collect page-view and
+            advertising-measurement data if enabled in the deployment configuration. It is
+            not loaded on authenticated questionnaire or application pages and is not sent
+            your questionnaire answers or generated document content.
+          </li>
         </ul>
       </section>
 
@@ -98,10 +105,14 @@ export default function PrivacyPage() {
             database hosting, file storage for your generated documents, and basic
             navigation analytics.
           </li>
+          <li>
+            <strong className="text-stone-900">Meta</strong> — marketing measurement on
+            selected public pages, only when the optional Meta Pixel is enabled.
+          </li>
         </ul>
         <p className="mt-3 text-sm leading-relaxed text-stone-600">
           We do not sell your data, and we do not share your questionnaire answers or
-          generated documents with any party beyond what&apos;s listed above.
+          generated documents with Meta or any party beyond what&apos;s listed above.
         </p>
       </section>
 

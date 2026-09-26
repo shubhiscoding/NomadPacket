@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Fraunces } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { MetaPixel } from "@/components/MetaPixel";
 import { getEnv } from "@/lib/env";
 import "./globals.css";
 
@@ -64,6 +65,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             per AGENTS.md §4's "no third-party analytics touching
             document content" rule. No-ops harmlessly off-Vercel. */}
         <Analytics />
+        <MetaPixel pixelId={getEnv().NEXT_PUBLIC_META_PIXEL_ID} />
       </body>
     </html>
   );
