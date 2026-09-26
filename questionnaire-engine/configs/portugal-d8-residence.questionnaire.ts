@@ -605,11 +605,25 @@ export const portugalD8ResidenceQuestionnaire: QuestionnaireConfig = {
           required: false,
         },
         {
+          id: "wantToProvideHomeAddress",
+          section: "E",
+          label: "Would you like to provide your home address now?",
+          helpText:
+            "We'll pre-fill it on your visa application form (Field 19). You can skip this and fill it in by hand later.",
+          fieldType: "radio",
+          required: false,
+          options: [
+            { value: "yes", label: "Yes, provide it now" },
+            { value: "skip", label: "Skip for now" },
+          ],
+        },
+        {
           id: "homeAddress",
           section: "E",
           label: "Your current home address",
           fieldType: "text",
           required: false,
+          visibleWhen: { questionId: "wantToProvideHomeAddress", equals: "yes" },
         },
         {
           id: "phoneNumber",
