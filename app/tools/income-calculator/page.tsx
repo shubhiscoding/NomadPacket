@@ -1,26 +1,32 @@
 import type { Metadata } from "next";
+import { getD8EligibilityFigures } from "@/lib/marketing-content-data";
 import { canonicalUrl } from "@/lib/seo";
 import { Disclaimer } from "@/components/Disclaimer";
 import { Faq } from "@/components/Faq";
+import { SoftwareApplicationSchema } from "@/components/SoftwareApplicationSchema";
 import { IncomeCalculatorForm } from "./calculator-form";
 
-export const metadata: Metadata = {
-  title: "D8 Visa Income Calculator: Do You Meet the 2026 Threshold?",
-  description:
-    "Free calculator: enter your monthly income and family size to check whether you meet " +
-    "Portugal's D8 visa income requirement for 2026, in USD, GBP, CAD, or EUR.",
-  alternates: { canonical: canonicalUrl("/tools/income-calculator") },
-  openGraph: {
-    title: "D8 Visa Income Calculator",
-    description: "Check your D8 visa eligibility in seconds.",
-    url: canonicalUrl("/tools/income-calculator"),
-    type: "website",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { effectiveYear } = await getD8EligibilityFigures();
+  const title = `D8 Visa Income Calculator: ${effectiveYear} Threshold`;
+  const description =
+    `Free calculator: check whether your monthly income meets Portugal's D8 visa ` +
+    `requirement for ${effectiveYear}, in USD, GBP, CAD, or EUR.`;
 
-export default function IncomeCalculatorPage() {
+  return {
+    title,
+    description,
+    alternates: { canonical: canonicalUrl("/tools/income-calculator") },
+    openGraph: { title, description, url: canonicalUrl("/tools/income-calculator"), type: "website" },
+  };
+}
+
+export default async function IncomeCalculatorPage() {
+  const { effectiveYear } = await getD8EligibilityFigures();
+
   return (
     <main className="mx-auto max-w-2xl px-6 py-16">
+      <SoftwareApplicationSchema />
       <p className="text-sm font-medium text-teal-800">Free Tool</p>
       <h1 className="mt-2 text-3xl font-medium text-stone-900">
         D8 Visa Income Calculator
@@ -28,7 +34,7 @@ export default function IncomeCalculatorPage() {
       <p className="mt-4 text-base leading-relaxed text-stone-600">
         Portugal&apos;s D8 visa income threshold is pegged to the national minimum wage and
         updates every January. Enter your monthly income below to check it against the
-        current 2026 figure — including the add-on for a spouse or children.
+        current {effectiveYear} figure — including the add-on for a spouse or children.
       </p>
 
       <section className="mt-8 rounded-xl border border-stone-200 p-6">

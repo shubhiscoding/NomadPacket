@@ -42,6 +42,7 @@ export async function getD8EligibilityFigures() {
     threshold: threshold?.value ?? null,
     dependents: dependents?.value ?? null,
     savings: savings?.value ?? null,
+    effectiveYear: threshold?.effectiveFrom.getUTCFullYear() ?? new Date().getUTCFullYear(),
   };
 }
 

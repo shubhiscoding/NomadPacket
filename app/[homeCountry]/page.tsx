@@ -34,9 +34,10 @@ export async function generateMetadata({
   const { homeCountry } = await params;
   const config = getCountryPageConfig(homeCountry);
   if (!config) return {};
+  const { effectiveYear } = await getD8EligibilityFigures();
 
-  const title = `Portugal D8 Visa from ${config.label}: Complete Guide (2026)`;
-  const description = `Everything a ${config.label} applicant needs for Portugal's D8 residence visa — income requirements, criminal record certificate process, apostille steps, and NIF guidance.`;
+  const title = `Portugal D8 Visa from ${config.label}: ${effectiveYear} Guide`;
+  const description = `A practical ${effectiveYear} guide for ${config.label} applicants — income requirements, criminal record certificate steps, apostille guidance, and NIF information.`;
 
   return {
     title,
@@ -89,7 +90,7 @@ export default async function CountryPage({
       </section>
 
       {criminalRecord && (
-        <section className="mt-10">
+        <section id="criminal-record" className="mt-10 scroll-mt-6">
           <h2 className="text-xl font-medium text-stone-900">
             Criminal record certificate: {config.label}-specific process
           </h2>
@@ -125,6 +126,36 @@ export default async function CountryPage({
           )}
         </section>
       )}
+
+      <section className="mt-10">
+        <h2 className="text-xl font-medium text-stone-900">What to prepare before your appointment</h2>
+        <p className="mt-2 text-sm leading-relaxed text-stone-600">
+          Start with the documents that take longest to obtain, especially the criminal
+          record certificate and any apostille or translation. Keep the original and a
+          clean digital copy of each document, then confirm the current submission
+          instructions with the consulate or visa-processing center handling your area.
+        </p>
+        <ol className="mt-3 flex flex-col gap-2 text-sm leading-relaxed text-stone-600">
+          <li className="list-decimal pl-1">Confirm your application channel and appointment requirements.</li>
+          <li className="list-decimal pl-1">Request your {criminalRecord?.homeCountryLabel ?? config.label} criminal record certificate.</li>
+          <li className="list-decimal pl-1">Complete the legalization and translation steps described above, if applicable.</li>
+          <li className="list-decimal pl-1">Gather income evidence, insurance, accommodation proof, and your NIF information.</li>
+          <li className="list-decimal pl-1">Use the public <Link href="/checklist" className="text-teal-800 underline">D8 document checklist</Link> to review the full packet before submission.</li>
+        </ol>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-xl font-medium text-stone-900">Common country-specific mistakes</h2>
+        <ul className="mt-3 flex flex-col gap-2 text-sm leading-relaxed text-stone-600">
+          <li>Ordering the criminal record certificate too early: the relevant freshness window is {criminalRecord?.freshnessRuleDays ?? "limited"} days.</li>
+          <li>Assuming an apostille replaces every other requirement: legalization, translation, and submission instructions are separate checks.</li>
+          <li>Using a generic employment letter that does not explicitly confirm remote work from Portugal.</li>
+          <li>Letting income figures or dates differ between the motivation letter, income evidence, and visa form.</li>
+        </ul>
+        <p className="mt-3 text-sm leading-relaxed text-stone-600">
+          The public <Link href="/tools/income-calculator" className="text-teal-800 underline">income calculator</Link> can help you check the threshold math, but it cannot predict a consulate decision or replace a review of the current official requirements.
+        </p>
+      </section>
 
       <section className="mt-10">
         <h2 className="text-xl font-medium text-stone-900">NIF (Portuguese tax number)</h2>

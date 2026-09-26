@@ -12,24 +12,23 @@ import { Faq } from "@/components/Faq";
 // this page without a redeploy, just with a short delay.
 export const revalidate = 3600;
 
-export const metadata: Metadata = {
-  title: "Portugal D8 Visa Checklist 2026: Every Document You Need",
-  description:
-    "The complete Portugal D8 residence visa document checklist for 2026 — what you write, " +
-    "what gets pre-filled, and what you gather yourself, with US/UK/Canada-specific guidance.",
-  alternates: { canonical: canonicalUrl("/checklist") },
-  openGraph: {
-    title: "Portugal D8 Visa Checklist 2026: Every Document You Need",
-    description:
-      "The complete document checklist for Portugal's D8 residence visa, with " +
-      "country-specific guidance for US, UK, and Canadian applicants.",
-    url: canonicalUrl("/checklist"),
-    type: "article",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { effectiveYear } = await getD8EligibilityFigures();
+  const title = `Portugal D8 Visa Checklist ${effectiveYear}: Documents`;
+  const description =
+    `The complete Portugal D8 residence visa document checklist for ${effectiveYear} — ` +
+    "what you write, what gets pre-filled, and what you gather yourself.";
+
+  return {
+    title,
+    description,
+    alternates: { canonical: canonicalUrl("/checklist") },
+    openGraph: { title, description, url: canonicalUrl("/checklist"), type: "article" },
+  };
+}
 
 export default async function PublicChecklistPage() {
-  const { threshold, dependents } = await getD8EligibilityFigures();
+  const { threshold, dependents, effectiveYear } = await getD8EligibilityFigures();
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-16">
@@ -42,7 +41,7 @@ export default async function PublicChecklistPage() {
         residence visa falls into three buckets: documents a tool can write for you,
         one official form that gets pre-filled from the same answers, and a handful of
         documents only you can obtain. Here&apos;s the full list, current for
-        {threshold ? " 2026" : ""}.
+          {threshold ? ` ${effectiveYear}` : ""}.
       </p>
 
       <section className="mt-10">
@@ -170,9 +169,9 @@ export default async function PublicChecklistPage() {
           <Faq
             items={[
               {
-                question: "How much income do I need for the D8 visa?",
+                  question: `How much income do I need for the D8 visa in ${effectiveYear}?`,
                 answer: threshold
-                  ? `As of 2026, the D8 visa requires average monthly income of at least €${threshold.amountEur.toLocaleString("en-US")} (4x Portugal's minimum wage). Consulates increasingly want a 6-month average above this figure.`
+                  ? `As of ${effectiveYear}, the D8 visa requires average monthly income of at least €${threshold.amountEur.toLocaleString("en-US")} (4x Portugal's minimum wage). Consulates increasingly want a 6-month average above this figure.`
                   : "The D8 visa requires average monthly income at least 4x Portugal's minimum wage — check the current figure with your consulate, since it updates every January.",
               },
               {

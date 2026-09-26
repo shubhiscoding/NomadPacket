@@ -8,7 +8,7 @@ import { Faq } from "@/components/Faq";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: "NIF Number Portugal: Complete Guide for Non-Residents (2026)",
+  title: "NIF Number Portugal: Guide for Non-Residents",
   description:
     "What a Portuguese NIF is, why D8 visa applicants need one before arrival, and three " +
     "concrete ways for US, UK, and Canadian non-residents to get one remotely.",
