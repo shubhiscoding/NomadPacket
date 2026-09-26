@@ -1,5 +1,21 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Faq } from "@/components/Faq";
+import { canonicalUrl } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  title: "Portugal D8 Visa Document Checklist & Generator | NomadPacket",
+  description:
+    "Assemble your Portugal D8 visa documents, pre-fill the national visa form, and follow a country-specific checklist for US, UK, or Canadian applicants.",
+  alternates: { canonical: canonicalUrl("") },
+  openGraph: {
+    title: "Portugal D8 Visa Document Checklist & Generator",
+    description:
+      "Assemble your Portugal D8 visa documents and follow a country-specific checklist.",
+    url: canonicalUrl(""),
+    type: "website",
+  },
+};
 
 /**
  * Landing page — rebuilt for conversion, not just presence. Structure
@@ -158,7 +174,7 @@ export default function LandingPage() {
               <div className="rounded-lg border border-stone-100 bg-stone-50/40 p-3">
                 <p className="font-semibold text-stone-700">Motivation letter</p>
                 <p className="mt-1 leading-relaxed">
-                  "I plan to relocate to Portugal on <span className="font-semibold text-teal-700">Mar 1, 2027</span>, with a stable monthly income of <span className="font-semibold text-teal-700">$6,200</span>…"
+                  &quot;I plan to relocate to Portugal on <span className="font-semibold text-teal-700">Mar 1, 2027</span>, with a stable monthly income of <span className="font-semibold text-teal-700">$6,200</span>…&quot;
                 </p>
               </div>
               <div className="rounded-lg border border-stone-100 bg-stone-50/40 p-3">

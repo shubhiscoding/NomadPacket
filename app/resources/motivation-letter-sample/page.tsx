@@ -5,7 +5,7 @@ import { Disclaimer } from "@/components/Disclaimer";
 import { Faq } from "@/components/Faq";
 
 export const metadata: Metadata = {
-  title: "D8 Visa Motivation Letter: Free Sample + Generator | NomadPacket",
+  title: "D8 Visa Motivation Letter: Sample + Generator",
   description:
     "See a real D8 visa motivation letter example, then generate your own " +
     "personalized version in minutes based on your job, income, and move date.",

@@ -5,7 +5,7 @@ import { Disclaimer } from "@/components/Disclaimer";
 import { Faq } from "@/components/Faq";
 
 export const metadata: Metadata = {
-  title: "D8 Visa Employer Letter: Sample + What to Say If HR Pushes Back",
+  title: "D8 Visa Employer Letter: Sample + HR Script",
   description:
     "A real D8 visa employer remote-work confirmation letter example, plus a script for " +
     "asking HR to sign it and what to say if they hesitate.",
