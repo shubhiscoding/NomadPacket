@@ -6,6 +6,7 @@
 const COUNTRY_MAP: Record<string, string> = {
   US: "United States",
   GB: "United Kingdom",
+  UK: "United Kingdom", // Alias for GB (questionnaire uses UK)
   CA: "Canada",
   DE: "Germany",
   FR: "France",

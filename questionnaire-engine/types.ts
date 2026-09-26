@@ -71,6 +71,7 @@ export type QuestionId =
   // fill in by hand.
   | "dateOfBirth"
   | "passportIssueDate"
+  | "wantToProvideHomeAddress"
   | "homeAddress"
   | "phoneNumber";
 

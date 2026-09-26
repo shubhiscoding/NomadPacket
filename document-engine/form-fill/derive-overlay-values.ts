@@ -1,4 +1,5 @@
 import type { Answers } from "@/questionnaire-engine/types";
+import { getCountryName } from "@/lib/country-mapping";
 
 /**
  * Portugal's national visa form asks for Surname and First name(s) as
@@ -40,15 +41,8 @@ function occupationLabel(employmentType: string | undefined): string {
   return OCCUPATION_LABELS[employmentType ?? ""] ?? "";
 }
 
-/** Matches the nationality options in questionnaire-engine/configs/portugal-d8-residence.questionnaire.ts. */
-const NATIONALITY_LABELS: Record<string, string> = {
-  US: "United States",
-  UK: "United Kingdom",
-  CA: "Canada",
-};
-
 function nationalityLabel(nationality: string | undefined): string {
-  return NATIONALITY_LABELS[nationality ?? ""] ?? (nationality ?? "");
+  return getCountryName(nationality);
 }
 
 /**
