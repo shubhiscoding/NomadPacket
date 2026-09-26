@@ -13,10 +13,8 @@ const DEFAULT_MIN_FONT_SIZE = 6.5;
  * Portugal's real national visa form has no AcroForm fields — it's a
  * flat, print-and-hand-fill PDF, like most official government forms —
  * so "filling" it means positioning content on top of the printed form
- * at measured coordinates, not setting named form fields. Works
- * identically whether `mapping` still pointed at a stub or the real form;
- * only the mapping data (coordinates + asset path) needs to change to
- * swap one in for the other.
+ * at measured coordinates, not setting named fields. The generic renderer
+ * only depends on the mapping's coordinates and asset path.
  *
  * Text is drawn in a dark blue, distinct from the form's printed black
  * ink — a common convention for pre-filled/typed answers on a form

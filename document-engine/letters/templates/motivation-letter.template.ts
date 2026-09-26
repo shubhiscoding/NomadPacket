@@ -32,6 +32,7 @@ export interface MotivationLetterData {
   /** Already includes the leading "and reside at ..." clause, or "" if unknown. */
   accommodationClause: string;
   incomeAmountFormatted: string;
+  healthInsuranceClause: string;
   personalReason: string;
   date: string;
 }
@@ -43,7 +44,7 @@ export const motivationLetterTemplate = {
     "Dear Sir/Madam,",
     "I, {{fullName}}, a citizen of {{nationality}} currently residing in {{residingLocation}}, am writing to formally express my intention to relocate to Portugal under the D8 {{visaFlavorLabel}} Visa program.",
     "I work as a {{jobTitleOrRole}} {{employmentDescriptor}}, earning income that is entirely sourced from outside Portugal.{{employmentGapClause}} My work is fully remote and location-independent, allowing me to continue performing my professional duties without interruption while residing in Portugal.",
-    "I intend to relocate to Portugal on or around {{intendedMoveDate}}{{accommodationClause}}. I have arranged comprehensive health insurance valid in Portugal and can demonstrate a stable monthly income of {{incomeAmountFormatted}}, well in excess of the minimum threshold required for this visa category.",
+    "I intend to relocate to Portugal on or around {{intendedMoveDate}}{{accommodationClause}}. {{healthInsuranceClause}} I can demonstrate a stable monthly income of {{incomeAmountFormatted}}.",
     "I am drawn to Portugal because {{personalReason}}. I look forward to contributing to and being part of Portuguese life during my stay.",
     "Sincerely,\n{{fullName}}\n{{date}}",
   ],

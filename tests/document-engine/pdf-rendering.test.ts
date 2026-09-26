@@ -131,3 +131,70 @@ describe("rendered PDF content matches fixture data (CA business owner, with dep
     expect(text).toContain("business owner");
   });
 });
+
+describe("document hardening matrix", () => {
+  const businessVariants: Array<{ type: string; answers: Answers; expected: string }> = [
+    {
+      type: "product revenue",
+      answers: {
+        ...(businessCaDependentsFixture.answers as Answers),
+        businessIncomeType: "product_revenue",
+        businessProductDescription: "a workflow automation platform",
+        businessRevenueModel: "subscription",
+        businessCustomerCount: 42,
+        hasHealthInsurance: false,
+      },
+      expected: "workflow automation platform",
+    },
+    {
+      type: "creator revenue",
+      answers: {
+        ...(businessCaDependentsFixture.answers as Answers),
+        businessIncomeType: "creator_revenue",
+        creatorPlatforms: "YouTube and Patreon",
+        creatorIncomeType: "subscriptions and sponsorships",
+      },
+      expected: "YouTube and Patreon",
+    },
+    {
+      type: "custom business",
+      answers: {
+        ...(businessCaDependentsFixture.answers as Answers),
+        businessIncomeType: "other",
+        businessOtherDescription: "online education",
+      },
+      expected: "APPLICANT REVIEW REQUIRED",
+    },
+  ];
+
+  it.each(businessVariants)("renders the $type narrative without placeholders or branding", async ({ answers, expected }) => {
+    const data = mapAnswersToFreelancerNarrativeData(answers, { homeCountryLabel: "Canada" });
+    const buffer = await renderFreelancerNarrativePdf(data);
+    const text = await extractText(buffer);
+
+    expect(text).toContain(expected);
+    expect(text).not.toMatch(/\{\{|\}\}|undefined|null/);
+    expect(text.toLowerCase()).not.toContain("nomadpacket");
+  });
+
+  it("does not claim insurance is already arranged when the applicant says it is not", async () => {
+    const answers = {
+      ...(employeeUsFixture.answers as Answers),
+      hasHealthInsurance: false,
+    };
+    const data = mapAnswersToMotivationLetterData(answers, { homeCountryLabel: "United States" });
+    const text = await extractText(await renderMotivationLetterPdf(data));
+
+    expect(text).toContain("I will provide comprehensive health insurance");
+    expect(text).not.toContain("I have arranged comprehensive health insurance");
+  });
+
+  it("does not claim income is above the threshold for a low-income applicant", async () => {
+    const answers = { ...(employeeUsFixture.answers as Answers), monthlyIncome: 1000 };
+    const data = mapAnswersToMotivationLetterData(answers, { homeCountryLabel: "United States" });
+    const text = await extractText(await renderMotivationLetterPdf(data));
+
+    expect(text.replace(/\s+/g, " ")).toContain("stable monthly income");
+    expect(text).not.toContain("well in excess");
+  });
+});

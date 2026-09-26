@@ -1,6 +1,6 @@
 // Re-exported here so seed.ts can import every Portugal/D8 config value
 // from one place (country-config/portugal/*), while the actual mapping data
-// and the STUB blocker documentation live next to the form-fill engine code
+// and its source/coverage documentation live next to the form-fill engine
 // that consumes them (document-engine/form-fill/), per AGENTS.md's rule
 // that field-level mappings are stored per country but the engine that
 // applies them stays generic.

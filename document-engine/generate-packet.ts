@@ -95,10 +95,9 @@ export async function generateApplicationDocuments(applicationId: string): Promi
     ),
   });
 
-  // Bucket 2 — official form pre-fill. Currently always the STUB mapping
-  // (see document-engine/form-fill/README.md); fill.ts is generic and
-  // will work identically once the real mapping/asset replace it, no
-  // change needed here.
+  // Bucket 2 — official form pre-fill. The mapping is the sourced national
+  // visa form; applicant-signature and ambiguous personal fields remain blank
+  // for the applicant to complete.
   const formMappingResult = await resolveConfigValue<FormFieldMapping>({
     country: application.country,
     visaType: application.visaType,
