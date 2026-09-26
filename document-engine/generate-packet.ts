@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { resolveConfigValue } from "@/lib/config-resolver";
+import { getCountryName } from "@/lib/country-mapping";
 import { CountryConfigKey } from "@/country-config/types";
 import type {
   CriminalRecordBranchInstructions,
@@ -58,10 +59,9 @@ export async function generateApplicationDocuments(applicationId: string): Promi
     homeCountry: nationality,
     key: CountryConfigKey.BranchCriminalRecordInstructions,
   });
-  // Falls back to the raw nationality code if no branch config matches
-  // (shouldn't happen for US/UK/CA, but degrades gracefully rather than
-  // throwing if an unexpected value slips through).
-  const homeCountryLabel = criminalRecordResult?.value.homeCountryLabel ?? nationality;
+  // Use country mapping to convert ISO code to full country name. Falls back to
+  // the nationality code if no mapping exists (shouldn't happen, but degrades gracefully).
+  const homeCountryLabel = criminalRecordResult?.value.homeCountryLabel ?? getCountryName(nationality);
 
   const documentsToGenerate: Array<{ type: DocumentType; buffer: Promise<Buffer> }> = [];
 
