@@ -14,9 +14,9 @@ export const revalidate = 3600;
 
 export async function generateMetadata(): Promise<Metadata> {
   const { effectiveYear } = await getD8EligibilityFigures();
-  const title = `Portugal D8 Visa Checklist ${effectiveYear}: Documents`;
+  const title = `Portugal D8 Visa Requirements: ${effectiveYear} Checklist`;
   const description =
-    `The complete Portugal D8 residence visa document checklist for ${effectiveYear} — ` +
+    `Portugal D8 visa requirements and complete document checklist for ${effectiveYear} — ` +
     "what you write, what gets pre-filled, and what you gather yourself.";
 
   return {
@@ -34,9 +34,10 @@ export default async function PublicChecklistPage() {
     <main className="mx-auto max-w-2xl px-6 py-16">
       <p className="text-sm font-medium text-teal-800">Portugal D8 Residence Visa</p>
       <h1 className="mt-2 text-3xl font-medium text-stone-900">
-        The Complete Portugal D8 Visa Document Checklist
+        Portugal D8 Visa Requirements and Document Checklist
       </h1>
       <p className="mt-4 text-base leading-relaxed text-stone-600">
+        These are the Portugal digital nomad visa requirements for the D8 residence visa.
         Every document a US, UK, or Canadian applicant needs for Portugal&apos;s D8
         residence visa falls into three buckets: documents a tool can write for you,
         one official form that gets pre-filled from the same answers, and a handful of

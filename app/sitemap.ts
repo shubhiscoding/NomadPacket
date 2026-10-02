@@ -21,7 +21,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/privacy", priority: 0.3 },
   ];
 
-  const resourceSlugs = ["motivation-letter-sample", "employer-letter-sample", "nif-guide"];
+  const resourceSlugs = [
+    "motivation-letter-sample",
+    "employer-letter-sample",
+    "nif-guide",
+    "portugal-digital-nomad-visa",
+    "d8-visa-portugal-requirements",
+    "portugal-d8-visa-requirements",
+    "how-to-apply-d8-visa-from-usa",
+    "how-to-apply-d8-visa-from-uk",
+    "how-to-apply-d8-visa-from-canada",
+    "protugal-d8-visa",
+  ];
 
   const countryPages = ["us", "uk", "ca"]; // matches country-config home-country keys
 

@@ -4,14 +4,14 @@ import { Faq } from "@/components/Faq";
 import { canonicalUrl } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Portugal D8 Visa Document Checklist & Generator | NomadPacket",
+  title: "Portugal Digital Nomad Visa: D8 Checklist | NomadPacket",
   description:
-    "Assemble your Portugal D8 visa documents, pre-fill the national visa form, and follow a country-specific checklist for US, UK, or Canadian applicants.",
+    "Portugal digital nomad visa requirements, D8 document checklist, and application guidance for US, UK, and Canadian applicants.",
   alternates: { canonical: canonicalUrl("") },
   openGraph: {
-    title: "Portugal D8 Visa Document Checklist & Generator",
+    title: "Portugal Digital Nomad Visa: D8 Checklist",
     description:
-      "Assemble your Portugal D8 visa documents and follow a country-specific checklist.",
+      "Check Portugal digital nomad visa requirements and assemble your D8 application documents.",
     url: canonicalUrl(""),
     type: "website",
   },
@@ -49,10 +49,11 @@ export default function LandingPage() {
         <div>
           <p className="text-sm font-medium text-teal-800">Portugal D8 Residence Visa</p>
           <h1 className="mt-4 text-4xl font-medium leading-tight text-stone-900 sm:text-5xl">
-            Your D8 visa documents, done correctly — not just done fast.
+            Portugal digital nomad visa documents, done correctly.
           </h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-stone-600 sm:text-lg">
-            Answer one questionnaire. NomadPacket writes your motivation letter, employer or
+            The Portugal digital nomad visa is the D8 residence visa. Answer one questionnaire.
+            NomadPacket writes your motivation letter, employer or
             freelancer income letter, and income summary, pre-fills the official national visa
             form, and tells you exactly what else your consulate needs — based on whether
             you&apos;re applying from the US, UK, or Canada.
@@ -100,6 +101,39 @@ export default function LandingPage() {
                 </span>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-y border-stone-100 bg-stone-50/60 py-16">
+        <div className="mx-auto max-w-6xl px-6">
+          <p className="text-sm font-medium text-teal-800">Portugal D8 visa requirements</p>
+          <h2 className="mt-2 max-w-2xl text-2xl font-medium text-stone-900">
+            Check the requirements, then prepare the right documents
+          </h2>
+          <p className="mt-3 max-w-3xl text-base leading-relaxed text-stone-600">
+            The Portugal D8 visa requirements include qualifying remote income, proof of
+            accommodation, health insurance, a criminal record certificate, and a completed
+            national visa application. The exact criminal-record steps depend on where you
+            apply from.
+          </p>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Link href="/checklist" className="rounded-lg border border-stone-200 bg-white p-4 hover:border-teal-700">
+              <h3 className="font-medium text-stone-900">D8 visa requirements</h3>
+              <p className="mt-1 text-sm text-stone-600">Complete Portugal document checklist</p>
+            </Link>
+            <Link href="/us" className="rounded-lg border border-stone-200 bg-white p-4 hover:border-teal-700">
+              <h3 className="font-medium text-stone-900">From the USA</h3>
+              <p className="mt-1 text-sm text-stone-600">How to apply and handle your record check</p>
+            </Link>
+            <Link href="/uk" className="rounded-lg border border-stone-200 bg-white p-4 hover:border-teal-700">
+              <h3 className="font-medium text-stone-900">From the UK</h3>
+              <p className="mt-1 text-sm text-stone-600">How to apply and prepare your documents</p>
+            </Link>
+            <Link href="/ca" className="rounded-lg border border-stone-200 bg-white p-4 hover:border-teal-700">
+              <h3 className="font-medium text-stone-900">From Canada</h3>
+              <p className="mt-1 text-sm text-stone-600">How to apply and prepare your documents</p>
+            </Link>
           </div>
         </div>
       </section>
@@ -217,6 +251,16 @@ export default function LandingPage() {
                   question: "Which countries does this support?",
                   answer:
                     "Portugal's D8 residence visa only, for applicants from the US, UK, or Canada. Other countries and the temporary-stay visa variant aren't supported yet.",
+                },
+                {
+                  question: "What are the Portugal D8 visa requirements?",
+                  answer:
+                    "You generally need qualifying foreign-sourced remote income, accommodation in Portugal, health insurance, a criminal record certificate, and the national visa application form. Use the complete D8 visa checklist to review the current document set.",
+                },
+                {
+                  question: "How do I apply for a Portugal D8 visa from the USA, UK, or Canada?",
+                  answer:
+                    "Start with the country guide for the United States, United Kingdom, or Canada to review the local criminal-record and application steps. Then use the questionnaire to assemble your motivation letter, income documents, and pre-filled national visa form.",
                 },
               ]}
             />
