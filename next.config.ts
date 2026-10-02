@@ -10,6 +10,15 @@ import type { NextConfig } from "next";
 const devTunnelEnabled = process.env.DEV_TUNNEL_ENABLED === "true";
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      {
+        source: "/resources/protugal-d8-visa",
+        destination: "/resources/portugal-d8-visa",
+        permanent: true,
+      },
+    ];
+  },
   // Pin the workspace root explicitly: this repo's parent directory has an
   // unrelated package.json/lockfile from a different project, and without
   // this Turbopack walks up and picks that one up by mistake.
