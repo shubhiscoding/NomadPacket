@@ -8,12 +8,13 @@ export interface CountryPageConfig {
   slug: string;
   homeCountryCode: string;
   label: string;
+  searchLabel: string;
 }
 
 export const countryPagesConfig: CountryPageConfig[] = [
-  { slug: "us", homeCountryCode: "US", label: "the United States" },
-  { slug: "uk", homeCountryCode: "UK", label: "the United Kingdom" },
-  { slug: "ca", homeCountryCode: "CA", label: "Canada" },
+  { slug: "us", homeCountryCode: "US", label: "the United States", searchLabel: "the USA" },
+  { slug: "uk", homeCountryCode: "UK", label: "the United Kingdom", searchLabel: "the UK" },
+  { slug: "ca", homeCountryCode: "CA", label: "Canada", searchLabel: "Canada" },
 ];
 
 export function getCountryPageConfig(slug: string): CountryPageConfig | undefined {

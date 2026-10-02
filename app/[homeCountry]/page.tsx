@@ -36,7 +36,7 @@ export async function generateMetadata({
   if (!config) return {};
   const { effectiveYear } = await getD8EligibilityFigures();
 
-  const title = `Portugal D8 Visa from ${config.label}: ${effectiveYear} Guide`;
+  const title = `How to Apply for Portugal D8 Visa from ${config.searchLabel}`;
   const description = `A practical ${effectiveYear} guide for ${config.label} applicants — income requirements, criminal record certificate steps, apostille guidance, and NIF information.`;
 
   return {
@@ -66,10 +66,10 @@ export default async function CountryPage({
     <main className="mx-auto max-w-2xl px-6 py-16">
       <p className="text-sm font-medium text-teal-800">Portugal D8 Residence Visa</p>
       <h1 className="mt-2 text-3xl font-medium text-stone-900">
-        Portugal D8 Visa Guide for Applicants from {config.label}
+        How to Apply for the Portugal D8 Visa from {config.label}
       </h1>
       <p className="mt-4 text-base leading-relaxed text-stone-600">
-        The D8 process is largely the same regardless of where you&apos;re applying from —
+        The Portugal digital nomad visa is the D8 residence visa. The application process is largely the same regardless of where you&apos;re applying from —
         except for one document that varies significantly by home country: your criminal
         record certificate. Here&apos;s exactly what applicants from {config.label} need,
         start to finish.
