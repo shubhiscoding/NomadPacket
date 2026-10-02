@@ -31,7 +31,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "how-to-apply-d8-visa-from-usa",
     "how-to-apply-d8-visa-from-uk",
     "how-to-apply-d8-visa-from-canada",
-    "protugal-d8-visa",
+    "portugal-d8-visa",
   ];
 
   const countryPages = ["us", "uk", "ca"]; // matches country-config home-country keys
