@@ -16,6 +16,9 @@ export function Footer() {
         <Link href="/privacy" className="hover:text-stone-600">
           Privacy Policy
         </Link>
+        <Link href="/llms.txt" className="hover:text-stone-600">
+          llms.txt
+        </Link>
       </div>
     </footer>
   );
