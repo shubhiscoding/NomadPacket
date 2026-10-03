@@ -1,6 +1,8 @@
 import { getResendClient } from "./resend-client";
 import { magicLinkEmail } from "./templates/magic-link-email";
 import { packetReadyEmail } from "./templates/packet-ready-email";
+import { awaitingPaymentReminderEmail } from "./templates/awaiting-payment-reminder-email";
+import { incompleteApplicationReminderEmail } from "./templates/incomplete-application-reminder-email";
 import { getEnv } from "@/lib/env";
 
 export async function sendMagicLinkEmail(params: {
@@ -58,5 +60,57 @@ export async function sendPacketReadyEmail(params: {
 
   if (error) {
     throw new Error(`Resend failed to send packet email to ${params.to}: ${error.message}`);
+  }
+}
+
+export async function sendAwaitingPaymentReminderEmail(params: {
+  to: string;
+  name: string;
+  checklistUrl: string;
+}): Promise<void> {
+  const { subject, html, text } = awaitingPaymentReminderEmail({
+    name: params.name,
+    checklistUrl: params.checklistUrl,
+  });
+  const env = getEnv();
+
+  const { error } = await getResendClient().emails.send({
+    from: `NomadPacket <${env.RESEND_FROM_EMAIL}>`,
+    to: params.to,
+    subject,
+    html,
+    text,
+  });
+
+  if (error) {
+    throw new Error(
+      `Resend failed to send awaiting-payment reminder email to ${params.to}: ${error.message}`
+    );
+  }
+}
+
+export async function sendIncompleteApplicationReminderEmail(params: {
+  to: string;
+  name: string;
+  checklistUrl: string;
+}): Promise<void> {
+  const { subject, html, text } = incompleteApplicationReminderEmail({
+    name: params.name,
+    checklistUrl: params.checklistUrl,
+  });
+  const env = getEnv();
+
+  const { error } = await getResendClient().emails.send({
+    from: `NomadPacket <${env.RESEND_FROM_EMAIL}>`,
+    to: params.to,
+    subject,
+    html,
+    text,
+  });
+
+  if (error) {
+    throw new Error(
+      `Resend failed to send incomplete-application reminder email to ${params.to}: ${error.message}`
+    );
   }
 }
