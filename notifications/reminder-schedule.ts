@@ -1,35 +1,56 @@
-export const FIRST_REMINDER_DELAY_MS = 60 * 60 * 1000; // 1 hour
-export const REMINDER_CADENCE_MS = 24 * 60 * 60 * 1000; // 24 hours
+// Flow A (Awaiting Payment): 4 emails at these delays
+export const FLOW_A_DELAYS_MS = [
+  3 * 60 * 60 * 1000, // Email 1: 3 hours
+  24 * 60 * 60 * 1000, // Email 2: 24 hours
+  2.5 * 24 * 60 * 60 * 1000, // Email 3: 60 hours (2.5 days)
+  7 * 24 * 60 * 60 * 1000, // Email 4: 7 days (hard cap)
+];
+
+// Flow B (Incomplete): 2 emails at these delays
+export const FLOW_B_DELAYS_MS = [
+  3 * 60 * 60 * 1000, // Email 1: 3 hours
+  48 * 60 * 60 * 1000, // Email 2: 48 hours
+];
+
 export const REMINDER_CUTOFF_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 /**
- * Pure decision function for whether a reminder should be sent right now.
- * No Prisma, no Date.now() internally — every input is passed in so this
- * is trivially testable with fixed fake "now" values.
+ * Determines which email in a sequence should be sent, if any.
+ * Returns the email number (1, 2, 3, or 4) to send, or null if none qualifies.
  *
- * `updatedAt`: the application's last-activity timestamp (Application.updatedAt).
- * `lastReminderAt`: sentAt of the most recent ApplicationReminder row for
- *   this application+flow, or null if none has ever been sent.
- * `now`: injected clock, so tests never depend on wall-clock time.
+ * `updatedAt`: application's last-activity timestamp (Application.updatedAt).
+ * `lastEmailNumber`: the last email sent for this flow (null if none sent yet).
+ * `lastEmailSentAt`: sentAt of that last email (null if none sent yet).
+ * `now`: injected clock for testability.
+ * `delays`: array of delays in ms for this flow's email sequence.
  */
-export function shouldSendReminder(params: {
+export function getNextEmailNumber(params: {
   updatedAt: Date;
-  lastReminderAt: Date | null;
+  lastEmailNumber: number | null;
+  lastEmailSentAt: Date | null;
   now: Date;
-}): boolean {
-  const { updatedAt, lastReminderAt, now } = params;
+  delays: number[];
+}): number | null {
+  const { updatedAt, lastEmailNumber, lastEmailSentAt, now, delays } = params;
   const inactiveMs = now.getTime() - updatedAt.getTime();
 
-  // Hard cap: once inactive for more than 7 days, never send again,
-  // regardless of reminder history.
-  if (inactiveMs > REMINDER_CUTOFF_MS) return false;
+  // Hard cap: once inactive for more than 7 days, never send again.
+  if (inactiveMs > REMINDER_CUTOFF_MS) return null;
 
-  if (lastReminderAt === null) {
-    // First reminder: fires once at least 1hr of inactivity has passed.
-    return inactiveMs >= FIRST_REMINDER_DELAY_MS;
+  if (lastEmailNumber === null) {
+    // First email: check if first delay has passed.
+    return inactiveMs >= delays[0] ? 1 : null;
   }
 
-  // Subsequent reminder: fires once 24h have passed since the last one.
-  const sinceLastReminderMs = now.getTime() - lastReminderAt.getTime();
-  return sinceLastReminderMs >= REMINDER_CADENCE_MS;
+  // Already sent email N, check if we should send email N+1.
+  if (lastEmailNumber >= delays.length) {
+    // Already sent all emails in the sequence.
+    return null;
+  }
+
+  const sinceLastSentMs = now.getTime() - lastEmailSentAt!.getTime();
+  const nextEmailDelay = delays[lastEmailNumber];
+
+  // Send the next email if enough time has passed since the last one.
+  return sinceLastSentMs >= nextEmailDelay ? lastEmailNumber + 1 : null;
 }
