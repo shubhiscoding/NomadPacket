@@ -1,8 +1,12 @@
 import { getResendClient } from "./resend-client";
 import { magicLinkEmail } from "./templates/magic-link-email";
 import { packetReadyEmail } from "./templates/packet-ready-email";
-import { awaitingPaymentReminderEmail } from "./templates/awaiting-payment-reminder-email";
-import { incompleteApplicationReminderEmail } from "./templates/incomplete-application-reminder-email";
+import { flowAEmail1 } from "./templates/flow-a-email-1";
+import { flowAEmail2 } from "./templates/flow-a-email-2";
+import { flowAEmail3 } from "./templates/flow-a-email-3";
+import { flowAEmail4 } from "./templates/flow-a-email-4";
+import { flowBEmail1 } from "./templates/flow-b-email-1";
+import { flowBEmail2 } from "./templates/flow-b-email-2";
 import { getEnv } from "@/lib/env";
 
 export async function sendMagicLinkEmail(params: {
@@ -63,12 +67,26 @@ export async function sendPacketReadyEmail(params: {
   }
 }
 
-export async function sendAwaitingPaymentReminderEmail(params: {
+// Flow A reminder emails (4-email sequence)
+export async function sendFlowAReminder(params: {
   to: string;
   name: string;
   checklistUrl: string;
+  emailNumber: number;
 }): Promise<void> {
-  const { subject, html, text } = awaitingPaymentReminderEmail({
+  const templates: Record<number, (p: { name: string; checklistUrl: string }) => ReturnType<typeof flowAEmail1>> = {
+    1: flowAEmail1,
+    2: flowAEmail2,
+    3: flowAEmail3,
+    4: flowAEmail4,
+  };
+
+  const template = templates[params.emailNumber];
+  if (!template) {
+    throw new Error(`Unknown Flow A email number: ${params.emailNumber}`);
+  }
+
+  const { subject, html, text } = template({
     name: params.name,
     checklistUrl: params.checklistUrl,
   });
@@ -84,17 +102,29 @@ export async function sendAwaitingPaymentReminderEmail(params: {
 
   if (error) {
     throw new Error(
-      `Resend failed to send awaiting-payment reminder email to ${params.to}: ${error.message}`
+      `Resend failed to send Flow A email ${params.emailNumber} to ${params.to}: ${error.message}`
     );
   }
 }
 
-export async function sendIncompleteApplicationReminderEmail(params: {
+// Flow B reminder emails (2-email sequence)
+export async function sendFlowBReminder(params: {
   to: string;
   name: string;
   checklistUrl: string;
+  emailNumber: number;
 }): Promise<void> {
-  const { subject, html, text } = incompleteApplicationReminderEmail({
+  const templates: Record<number, (p: { name: string; checklistUrl: string }) => ReturnType<typeof flowBEmail1>> = {
+    1: flowBEmail1,
+    2: flowBEmail2,
+  };
+
+  const template = templates[params.emailNumber];
+  if (!template) {
+    throw new Error(`Unknown Flow B email number: ${params.emailNumber}`);
+  }
+
+  const { subject, html, text } = template({
     name: params.name,
     checklistUrl: params.checklistUrl,
   });
@@ -110,7 +140,7 @@ export async function sendIncompleteApplicationReminderEmail(params: {
 
   if (error) {
     throw new Error(
-      `Resend failed to send incomplete-application reminder email to ${params.to}: ${error.message}`
+      `Resend failed to send Flow B email ${params.emailNumber} to ${params.to}: ${error.message}`
     );
   }
 }

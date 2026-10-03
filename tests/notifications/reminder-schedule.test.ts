@@ -1,75 +1,191 @@
 import { describe, it, expect } from "vitest";
 import {
-  shouldSendReminder,
-  FIRST_REMINDER_DELAY_MS,
-  REMINDER_CADENCE_MS,
+  getNextEmailNumber,
+  FLOW_A_DELAYS_MS,
+  FLOW_B_DELAYS_MS,
   REMINDER_CUTOFF_MS,
 } from "@/notifications/reminder-schedule";
 
-describe("shouldSendReminder", () => {
+describe("getNextEmailNumber", () => {
   const baseTime = new Date("2026-10-03T12:00:00Z");
 
-  describe("first reminder (no prior reminder)", () => {
-    it("returns false if inactive < 1 hour", () => {
-      const updatedAt = new Date(baseTime.getTime() - (FIRST_REMINDER_DELAY_MS - 1000));
-      const result = shouldSendReminder({ updatedAt, lastReminderAt: null, now: baseTime });
-      expect(result).toBe(false);
+  describe("Flow A (4 emails)", () => {
+    describe("email 1 (3 hours)", () => {
+      it("returns null if inactive < 3 hours", () => {
+        const updatedAt = new Date(baseTime.getTime() - (FLOW_A_DELAYS_MS[0] - 1000));
+        const result = getNextEmailNumber({
+          updatedAt,
+          lastEmailNumber: null,
+          lastEmailSentAt: null,
+          now: baseTime,
+          delays: FLOW_A_DELAYS_MS,
+        });
+        expect(result).toBe(null);
+      });
+
+      it("returns 1 if inactive == exactly 3 hours", () => {
+        const updatedAt = new Date(baseTime.getTime() - FLOW_A_DELAYS_MS[0]);
+        const result = getNextEmailNumber({
+          updatedAt,
+          lastEmailNumber: null,
+          lastEmailSentAt: null,
+          now: baseTime,
+          delays: FLOW_A_DELAYS_MS,
+        });
+        expect(result).toBe(1);
+      });
+
+      it("returns 1 if inactive > 3 hours", () => {
+        const updatedAt = new Date(baseTime.getTime() - (FLOW_A_DELAYS_MS[0] + 3600000));
+        const result = getNextEmailNumber({
+          updatedAt,
+          lastEmailNumber: null,
+          lastEmailSentAt: null,
+          now: baseTime,
+          delays: FLOW_A_DELAYS_MS,
+        });
+        expect(result).toBe(1);
+      });
     });
 
-    it("returns true if inactive == exactly 1 hour", () => {
-      const updatedAt = new Date(baseTime.getTime() - FIRST_REMINDER_DELAY_MS);
-      const result = shouldSendReminder({ updatedAt, lastReminderAt: null, now: baseTime });
-      expect(result).toBe(true);
+    describe("email 2 (24 hours from email 1)", () => {
+      it("returns null if < 24h since email 1", () => {
+        const lastEmailSentAt = new Date(baseTime.getTime() - (FLOW_A_DELAYS_MS[1] - 1000));
+        const updatedAt = new Date(baseTime.getTime() - 4 * 24 * 60 * 60 * 1000);
+        const result = getNextEmailNumber({
+          updatedAt,
+          lastEmailNumber: 1,
+          lastEmailSentAt,
+          now: baseTime,
+          delays: FLOW_A_DELAYS_MS,
+        });
+        expect(result).toBe(null);
+      });
+
+      it("returns 2 if >= 24h since email 1", () => {
+        const lastEmailSentAt = new Date(baseTime.getTime() - FLOW_A_DELAYS_MS[1]);
+        const updatedAt = new Date(baseTime.getTime() - 4 * 24 * 60 * 60 * 1000);
+        const result = getNextEmailNumber({
+          updatedAt,
+          lastEmailNumber: 1,
+          lastEmailSentAt,
+          now: baseTime,
+          delays: FLOW_A_DELAYS_MS,
+        });
+        expect(result).toBe(2);
+      });
     });
 
-    it("returns true if inactive > 1 hour", () => {
-      const updatedAt = new Date(baseTime.getTime() - (FIRST_REMINDER_DELAY_MS + 3600000));
-      const result = shouldSendReminder({ updatedAt, lastReminderAt: null, now: baseTime });
-      expect(result).toBe(true);
+    describe("email 3 (60 hours from email 2)", () => {
+      it("returns 3 if >= 60h since email 2", () => {
+        const lastEmailSentAt = new Date(baseTime.getTime() - FLOW_A_DELAYS_MS[2]);
+        const updatedAt = new Date(baseTime.getTime() - 4 * 24 * 60 * 60 * 1000);
+        const result = getNextEmailNumber({
+          updatedAt,
+          lastEmailNumber: 2,
+          lastEmailSentAt,
+          now: baseTime,
+          delays: FLOW_A_DELAYS_MS,
+        });
+        expect(result).toBe(3);
+      });
     });
 
-    it("returns true if inactive == exactly 7 days (cap is 'more than 7 days')", () => {
-      const updatedAt = new Date(baseTime.getTime() - REMINDER_CUTOFF_MS);
-      const result = shouldSendReminder({ updatedAt, lastReminderAt: null, now: baseTime });
-      expect(result).toBe(true);
-    });
+    describe("email 4 (7 days, hard cap)", () => {
+      it("returns 4 if inactive == exactly 7 days", () => {
+        const lastEmailSentAt = new Date(baseTime.getTime() - REMINDER_CUTOFF_MS);
+        const updatedAt = new Date(baseTime.getTime() - 4 * 24 * 60 * 60 * 1000);
+        const result = getNextEmailNumber({
+          updatedAt,
+          lastEmailNumber: 3,
+          lastEmailSentAt,
+          now: baseTime,
+          delays: FLOW_A_DELAYS_MS,
+        });
+        expect(result).toBe(4);
+      });
 
-    it("returns false if inactive > 7 days", () => {
-      const updatedAt = new Date(baseTime.getTime() - (REMINDER_CUTOFF_MS + 1000));
-      const result = shouldSendReminder({ updatedAt, lastReminderAt: null, now: baseTime });
-      expect(result).toBe(false);
+      it("returns null if inactive > 7 days (hard cap)", () => {
+        const updatedAt = new Date(baseTime.getTime() - (REMINDER_CUTOFF_MS + 1000));
+        const result = getNextEmailNumber({
+          updatedAt,
+          lastEmailNumber: null,
+          lastEmailSentAt: null,
+          now: baseTime,
+          delays: FLOW_A_DELAYS_MS,
+        });
+        expect(result).toBe(null);
+      });
     });
   });
 
-  describe("subsequent reminders (with prior reminder)", () => {
-    it("returns false if < 24h since last reminder", () => {
-      const lastReminderAt = new Date(baseTime.getTime() - (REMINDER_CADENCE_MS - 1000));
-      const updatedAt = new Date(baseTime.getTime() - 2 * 24 * 60 * 60 * 1000);
-      const result = shouldSendReminder({ updatedAt, lastReminderAt, now: baseTime });
-      expect(result).toBe(false);
+  describe("Flow B (2 emails)", () => {
+    describe("email 1 (3 hours)", () => {
+      it("returns 1 if inactive >= 3 hours", () => {
+        const updatedAt = new Date(baseTime.getTime() - FLOW_B_DELAYS_MS[0]);
+        const result = getNextEmailNumber({
+          updatedAt,
+          lastEmailNumber: null,
+          lastEmailSentAt: null,
+          now: baseTime,
+          delays: FLOW_B_DELAYS_MS,
+        });
+        expect(result).toBe(1);
+      });
     });
 
-    it("returns true if >= 24h since last reminder", () => {
-      const lastReminderAt = new Date(baseTime.getTime() - REMINDER_CADENCE_MS);
-      const updatedAt = new Date(baseTime.getTime() - 2 * 24 * 60 * 60 * 1000);
-      const result = shouldSendReminder({ updatedAt, lastReminderAt, now: baseTime });
-      expect(result).toBe(true);
-    });
+    describe("email 2 (48 hours from email 1)", () => {
+      it("returns 2 if >= 48h since email 1", () => {
+        const lastEmailSentAt = new Date(baseTime.getTime() - FLOW_B_DELAYS_MS[1]);
+        const updatedAt = new Date(baseTime.getTime() - 4 * 24 * 60 * 60 * 1000);
+        const result = getNextEmailNumber({
+          updatedAt,
+          lastEmailNumber: 1,
+          lastEmailSentAt,
+          now: baseTime,
+          delays: FLOW_B_DELAYS_MS,
+        });
+        expect(result).toBe(2);
+      });
 
-    it("returns true if 25h since last reminder", () => {
-      const lastReminderAt = new Date(baseTime.getTime() - (REMINDER_CADENCE_MS + 3600000));
-      const updatedAt = new Date(baseTime.getTime() - 2 * 24 * 60 * 60 * 1000);
-      const result = shouldSendReminder({ updatedAt, lastReminderAt, now: baseTime });
-      expect(result).toBe(true);
+      it("returns null if all emails sent (no more in sequence)", () => {
+        const lastEmailSentAt = new Date(baseTime.getTime() - 1 * 24 * 60 * 60 * 1000);
+        const updatedAt = new Date(baseTime.getTime() - 4 * 24 * 60 * 60 * 1000);
+        const result = getNextEmailNumber({
+          updatedAt,
+          lastEmailNumber: 2,
+          lastEmailSentAt,
+          now: baseTime,
+          delays: FLOW_B_DELAYS_MS,
+        });
+        expect(result).toBe(null);
+      });
     });
   });
 
-  describe("cutoff cap wins over cadence", () => {
-    it("returns false if inactive > 7 days, even with a recent reminder", () => {
-      const lastReminderAt = new Date(baseTime.getTime() - 1 * 24 * 60 * 60 * 1000);
+  describe("7-day hard cutoff applies to all flows", () => {
+    it("blocks Flow A email even at email 1", () => {
       const updatedAt = new Date(baseTime.getTime() - (REMINDER_CUTOFF_MS + 1000));
-      const result = shouldSendReminder({ updatedAt, lastReminderAt, now: baseTime });
-      expect(result).toBe(false);
+      const result = getNextEmailNumber({
+        updatedAt,
+        lastEmailNumber: null,
+        lastEmailSentAt: null,
+        now: baseTime,
+        delays: FLOW_A_DELAYS_MS,
+      });
+      expect(result).toBe(null);
+    });
+
+    it("blocks Flow B email if inactive > 7 days", () => {
+      const updatedAt = new Date(baseTime.getTime() - (REMINDER_CUTOFF_MS + 1000));
+      const result = getNextEmailNumber({
+        updatedAt,
+        lastEmailNumber: null,
+        lastEmailSentAt: null,
+        now: baseTime,
+        delays: FLOW_B_DELAYS_MS,
+      });
+      expect(result).toBe(null);
     });
   });
 });

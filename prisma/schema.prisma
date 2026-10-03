@@ -214,9 +214,10 @@ model ApplicationReminder {
   applicationId String       @map("application_id")
   application   Application  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   flow          ReminderFlow
+  emailNumber   Int          @map("email_number") // 1, 2, 3, or 4 for AWAITING_PAYMENT; 1 or 2 for INCOMPLETE
   sentAt        DateTime     @default(now()) @map("sent_at")
 
-  @@index([applicationId, flow, sentAt])
+  @@index([applicationId, flow, emailNumber, sentAt])
   @@map("application_reminders")
 }
 

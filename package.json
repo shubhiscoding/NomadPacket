@@ -12,6 +12,7 @@
     "test:documents": "dotenv -e .env.local -- vitest run tests/document-engine",
     "test:watch": "dotenv -e .env.local -- vitest",
     "test:e2e": "playwright test",
+    "test:emails": "dotenv -e .env.local -- tsx scripts/test-reminder-emails.ts",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
