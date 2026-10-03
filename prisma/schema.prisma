@@ -141,6 +141,11 @@ enum ApplicationStatus {
   DELIVERED
 }
 
+enum ReminderFlow {
+  INCOMPLETE
+  AWAITING_PAYMENT
+}
+
 model Application {
   id        String            @id @default(cuid())
   userId    String            @map("user_id")
@@ -158,8 +163,9 @@ model Application {
   createdAt DateTime          @default(now()) @map("created_at")
   updatedAt DateTime          @updatedAt @map("updated_at")
 
-  generatedDocuments GeneratedDocument[]
-  payments           Payment[]
+  generatedDocuments    GeneratedDocument[]
+  payments              Payment[]
+  applicationReminders  ApplicationReminder[]
 
   @@index([userId])
   // A user can have at most one non-PAID ("draft") application at a
@@ -201,6 +207,17 @@ enum PaymentStatus {
   PAID
   FAILED
   REFUNDED
+}
+
+model ApplicationReminder {
+  id            String       @id @default(cuid())
+  applicationId String       @map("application_id")
+  application   Application  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  flow          ReminderFlow
+  sentAt        DateTime     @default(now()) @map("sent_at")
+
+  @@index([applicationId, flow, sentAt])
+  @@map("application_reminders")
 }
 
 model Payment {
