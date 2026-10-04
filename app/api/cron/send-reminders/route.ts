@@ -12,12 +12,25 @@ import type { Answers } from "@/questionnaire-engine/types";
 import type { ReminderFlow } from "@prisma/client";
 
 /**
- * Hourly cron job that sends multi-email reminder sequences to applications
- * stuck in DRAFT (incomplete, Flow B: 2 emails) or QUESTIONNAIRE_COMPLETE/AWAITING_PAYMENT
- * (complete but unpaid, Flow A: 4 emails). Each flow has its own sequence of
- * emails at different delays. Respects a 7-day inactivity cap (if no activity
- * for 7+ days, reminders stop). Tracks which email was sent in ApplicationReminder
- * rows (separate from Application to avoid resetting the inactivity clock).
+ * Daily cron job (9 AM UTC) that sends multi-email reminder sequences to
+ * applications stuck in DRAFT (incomplete, Flow B: 2 emails) or
+ * QUESTIONNAIRE_COMPLETE/AWAITING_PAYMENT (complete but unpaid, Flow A: 4
+ * emails). Each flow has its own sequence at different delays.
+ *
+ * Timing note: Vercel Hobby accounts allow only once-daily crons. This means
+ * emails may arrive up to ~24 hours after the scheduled delay (e.g., the 3-hour
+ * email might arrive at 3-27 hours). This is acceptable since users expect
+ * follow-ups within a few days, not minute-perfect timing. The getNextEmailNumber()
+ * logic compares elapsed time since updatedAt, so it's robust to variable
+ * cron execution times.
+ *
+ * Email sequence:
+ * - Flow A: 3h, 24h, 60h, 7d (4 emails for awaiting payment)
+ * - Flow B: 3h, 48h (2 emails for incomplete)
+ *
+ * Respects 7-day inactivity cap (no reminders after 7 days). Tracks which
+ * email was sent in ApplicationReminder rows (separate from Application to
+ * avoid resetting the inactivity clock).
  */
 export async function GET(request: NextRequest) {
   const cronSecret = getEnv().CRON_SECRET;
