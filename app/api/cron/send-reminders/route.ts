@@ -112,7 +112,9 @@ export async function GET(request: NextRequest) {
       if (nextEmailNumber === null) continue;
 
       const answers = app.answers as Answers;
-      const name = app.user.name ?? (answers.fullLegalName as string | undefined) ?? "there";
+      // Prioritize questionnaire name (official/legal) over OAuth display name
+      const name =
+        (answers.fullLegalName as string | undefined) ?? app.user.name ?? "there";
       const checklistUrl = `${siteUrl}/application/${app.id}/checklist`;
 
       try {
