@@ -18,11 +18,10 @@ export default function TermsPage() {
       <p className="mt-2 text-sm text-stone-500">Last updated: {LAST_UPDATED}</p>
 
       <p className="mt-6 text-sm leading-relaxed text-stone-600">
-        NomadPacket is operated by Shubh Kesharwani, an individual based in India. This
-        business is not currently operated through a separately registered legal entity —
-        this section will be updated if and when that changes. By using NomadPacket
-        (&quot;the Service&quot;), you agree to these Terms. If you don&apos;t agree, don&apos;t use the
-        Service.
+        NomadPacket is operated by an independent creator. This business is not currently
+        operated through a separately registered legal entity — this section will be updated
+        if and when that changes. By using NomadPacket (&quot;the Service&quot;), you agree to
+        these Terms. If you don&apos;t agree, don&apos;t use the Service.
       </p>
 
       <section className="mt-10">
