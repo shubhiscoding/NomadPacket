@@ -19,7 +19,7 @@ export default function PrivacyPage() {
       <p className="mt-2 text-sm text-stone-500">Last updated: {LAST_UPDATED}</p>
 
       <p className="mt-6 text-sm leading-relaxed text-stone-600">
-        NomadPacket is operated by Shubh Kesharwani, an individual based in India (see the{" "}
+        NomadPacket is a small independent tool for assembling D8 visa documents (see the{" "}
         <Link href="/terms" className="text-teal-800 underline">
           Terms of Service
         </Link>{" "}
