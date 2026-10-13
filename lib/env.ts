@@ -12,6 +12,8 @@ import { z } from "zod";
 const envSchema = z.object({
   NEXT_PUBLIC_SITE_URL: z.string().url(),
   NEXT_PUBLIC_META_PIXEL_ID: z.string().regex(/^\d+$/).optional(),
+  NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1).optional(),
+  NEXT_PUBLIC_POSTHOG_HOST: z.string().url().optional(),
 
   DATABASE_URL: z.string().min(1),
 

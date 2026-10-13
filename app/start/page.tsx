@@ -3,6 +3,7 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { qualifierGateOptions } from "@/country-config/qualifier-gate";
+import { trackProductEvent } from "@/components/PostHogAnalytics";
 
 /**
  * Step 1 (AGENTS.md build order): the qualifier gate. No auth required.
@@ -48,6 +49,7 @@ function StartForm() {
       });
       if (!res.ok) throw new Error("Something went wrong. Please try again.");
       const data = await res.json();
+      trackProductEvent("qualifier_continue");
       router.push(data.redirectTo);
     } catch {
       setError("Something went wrong. Please try again.");

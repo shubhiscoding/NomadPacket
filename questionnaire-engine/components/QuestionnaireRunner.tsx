@@ -7,6 +7,7 @@ import { getVisibleGroups, validateAnswers } from "../engine";
 import type { Answers, QuestionnaireConfig, ValidationError } from "../types";
 import { Field } from "./fields/Field";
 import { ProgressIndicator } from "./ProgressIndicator";
+import { trackProductEvent } from "@/components/PostHogAnalytics";
 
 /**
  * One focused question group per screen, per AGENTS.md §2 design language.
@@ -72,8 +73,12 @@ export function QuestionnaireRunner({
     await saveProgress(answers);
 
     if (isLastGroup) {
+      trackProductEvent("questionnaire_completed");
       router.push(`/application/${applicationId}/checklist`);
     } else {
+      trackProductEvent("questionnaire_step_completed", {
+        step_number: groupIndex + 1,
+      });
       setGroupIndex((i) => i + 1);
     }
   }

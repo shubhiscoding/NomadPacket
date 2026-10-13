@@ -1,4 +1,5 @@
 import { PaidDeliveryActions } from "./paid-delivery-actions";
+import { TrackedAnchor } from "@/components/TrackedLink";
 
 export function DeliveryActions({
   applicationId,
@@ -10,12 +11,13 @@ export function DeliveryActions({
   if (!isPaid) {
     return (
       <div className="flex flex-wrap items-center gap-3">
-        <a
+        <TrackedAnchor
           href={`/api/applications/${applicationId}/checkout`}
+          event="checkout_started"
           className="rounded-lg bg-teal-800 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-900"
         >
           Pay to unlock download
-        </a>
+        </TrackedAnchor>
         <p className="text-xs text-stone-500">
           Review the details used in each document above before you pay.
         </p>

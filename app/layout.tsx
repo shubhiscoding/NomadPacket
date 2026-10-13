@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Fraunces } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { MetaPixel } from "@/components/MetaPixel";
+import { PostHogAnalytics } from "@/components/PostHogAnalytics";
 import { getEnv } from "@/lib/env";
 import "./globals.css";
 
@@ -60,12 +60,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Header />
         {children}
         <Footer />
-        {/* seo.md §6: pageview + conversion-funnel tracking. Vercel
-            Analytics tracks navigation only — never document content,
-            per AGENTS.md §4's "no third-party analytics touching
-            document content" rule. No-ops harmlessly off-Vercel. */}
-        <Analytics />
+        {/* PostHog handles session tracking and funnel analysis. Meta Pixel
+            for marketing measurement on public pages only (never on
+            questionnaire/application pages per AGENTS.md §4). */}
         <MetaPixel pixelId={getEnv().NEXT_PUBLIC_META_PIXEL_ID} />
+        <PostHogAnalytics
+          apiKey={getEnv().NEXT_PUBLIC_POSTHOG_KEY}
+          apiHost={getEnv().NEXT_PUBLIC_POSTHOG_HOST}
+        />
       </body>
     </html>
   );

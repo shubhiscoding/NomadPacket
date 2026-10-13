@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Faq } from "@/components/Faq";
 import { canonicalUrl } from "@/lib/seo";
+import { TrackedLink } from "@/components/TrackedLink";
 
 export const metadata: Metadata = {
   title: "Portugal Digital Nomad Visa: D8 Checklist | NomadPacket",
@@ -59,12 +60,13 @@ export default function LandingPage() {
             you&apos;re applying from the US, UK, or Canada.
           </p>
           <div className="mt-8 flex flex-col items-start gap-3">
-            <Link
+            <TrackedLink
               href="/start"
+              event="application_cta_clicked"
               className="inline-flex items-center rounded-lg bg-teal-800 px-6 py-3.5 text-base font-semibold text-white transition-colors hover:bg-teal-900"
             >
               Start your application
-            </Link>
+            </TrackedLink>
             <p className="text-xs text-stone-400">
               Free to preview. <span className="font-semibold text-stone-600">$59</span> to download your packet.
             </p>

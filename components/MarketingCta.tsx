@@ -1,4 +1,6 @@
-import Link from "next/link";
+"use client";
+
+import { TrackedLink } from "@/components/TrackedLink";
 
 /**
  * The one recurring CTA banner across marketing/resource pages — always
@@ -17,12 +19,13 @@ export function MarketingCta({
     <div className="mt-10 rounded-xl border border-teal-100 bg-teal-50/60 p-6">
       <h2 className="text-lg font-medium text-stone-900">{heading}</h2>
       <p className="mt-1.5 text-sm leading-relaxed text-stone-600">{body}</p>
-      <Link
+      <TrackedLink
         href="/start"
+        event="application_cta_clicked"
         className="mt-4 inline-flex w-fit items-center rounded-lg bg-teal-800 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-900"
       >
         Start your application
-      </Link>
+      </TrackedLink>
     </div>
   );
 }

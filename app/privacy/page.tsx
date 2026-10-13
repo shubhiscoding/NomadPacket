@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   alternates: { canonical: canonicalUrl("/privacy") },
 };
 
-const LAST_UPDATED = "September 21, 2026";
+const LAST_UPDATED = "October 13, 2026";
 
 export default function PrivacyPage() {
   return (
@@ -56,9 +56,11 @@ export default function PrivacyPage() {
             by our payment processor, Dodo Payments.
           </li>
           <li>
-            <strong className="text-stone-900">Basic usage analytics:</strong> page views
-            and navigation, via Vercel Analytics. This tracks that pages were visited, not
-            the content of anything you type or any generated document.
+            <strong className="text-stone-900">Session analytics:</strong> PostHog records
+            coarse page categories (landing, questionnaire, etc.) and funnel milestones
+            such as questionnaire progress and purchases. It does not record form inputs,
+            questionnaire answers, application IDs, or generated document content. Session
+            recordings are masked (all form inputs redacted).
           </li>
           <li>
             <strong className="text-stone-900">Marketing analytics:</strong> on public
@@ -102,8 +104,13 @@ export default function PrivacyPage() {
           </li>
           <li>
             <strong className="text-stone-900">Vercel</strong> — application hosting,
-            database hosting, file storage for your generated documents, and basic
-            navigation analytics.
+            database hosting, and file storage for your generated documents.
+          </li>
+          <li>
+            <strong className="text-stone-900">PostHog</strong> — product analytics, only
+            when enabled in the deployment configuration. It receives sanitized page
+            categories and coarse funnel events; session replay and automatic click or
+            form tracking are disabled.
           </li>
           <li>
             <strong className="text-stone-900">Meta</strong> — marketing measurement on
@@ -112,7 +119,7 @@ export default function PrivacyPage() {
         </ul>
         <p className="mt-3 text-sm leading-relaxed text-stone-600">
           We do not sell your data, and we do not share your questionnaire answers or
-          generated documents with Meta or any party beyond what&apos;s listed above.
+          generated documents with Meta, PostHog, or any party beyond what&apos;s listed above.
         </p>
       </section>
 
