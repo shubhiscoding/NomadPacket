@@ -119,11 +119,6 @@ export default async function CountryPage({
             Most consulates want this certificate issued within {criminalRecord.freshnessRuleDays}{" "}
             days of your application — don&apos;t get it too early.
           </p>
-          {criminalRecord.submissionChannelNote && (
-            <p className="mt-3 rounded-lg bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-800">
-              {criminalRecord.submissionChannelNote}
-            </p>
-          )}
         </section>
       )}
 
@@ -187,6 +182,14 @@ export default async function CountryPage({
                   ? `Yes — ${config.label} is a member of the Hague Apostille Convention, so an apostille (not full consular legalization) is the correct step.`
                   : "This depends on whether your home country is a Hague Apostille Convention member — check the specific guidance above.",
               },
+              ...(criminalRecord?.submissionChannelNote
+                ? [
+                    {
+                      question: `What's the submission process for ${config.label} applicants?`,
+                      answer: criminalRecord.submissionChannelNote,
+                    },
+                  ]
+                : []),
             ]}
           />
         </div>
